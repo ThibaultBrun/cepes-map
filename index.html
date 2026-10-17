@@ -103,7 +103,7 @@
     border-radius:20px;padding:5px 15px;font-size:11px;color:var(--cream);white-space:nowrap;
     pointer-events:none;transition:opacity .4s;opacity:0;letter-spacing:.02em}
   #zone-stats.vis{opacity:1}
-  #loc-btn{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:10;
+  #loc-btn{display:none!important;position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:10;
     background:var(--wood);border:1px solid var(--line);border-radius:24px;
     color:var(--cream);font-size:13px;font-family:"Inter",sans-serif;font-weight:600;
     padding:9px 18px;cursor:pointer;display:flex;align-items:center;gap:7px;
@@ -295,7 +295,7 @@ const map = new maplibregl.Map({
       { id: "foret", type: "fill", source: "foret", "source-layer": "foret",
         paint: { "fill-color": ["match", ["get","score"], 3, "#5c2e0c", 2, "#c07a3a", 1, "#f2dcc0", "#999"], "fill-opacity": 0.55 } },
       { id: "foret-line", type: "line", source: "foret", "source-layer": "foret",
-        paint: { "line-color": ["match", ["get","score"], 3, "#3a1c06", 2, "#8a5222", 1, "#cfae84"], "line-width": 0.5, "line-opacity": 0.45 } },
+        paint: { "line-color": ["match", ["get","score"], 3, "#3a1c06", 2, "#8a5222", 1, "#cfae84", "#999"], "line-width": 0.5, "line-opacity": 0.45 } },
       { id: "foret-best", type: "fill", source: "foret", "source-layer": "foret",
         filter: ["==", ["get","score"], 3],
         paint: { "fill-color": "#f5c842", "fill-opacity": 0.22 } },

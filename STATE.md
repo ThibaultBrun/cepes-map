@@ -54,3 +54,4 @@
 - 2026-10-18 08:2x — Passe 21 (dirigée Thibault) : 🥾 **Fréquentation Strava** — heatmap pédestre (sport_Hike) aspirée en tuiles statiques (build_strava.py, z10-13, 646 tuiles via cookies CloudFront rafraîchis par `npm run strava:cookies`). Calque raster + toggle + légende. Montre accès (sentiers battus) & concurrence.
 - 2026-10-18 09:0x — Passe 22 (dirigée Thibault) : radar de poussée **repliable** — barre compacte (verdict + chevron), tap = déplie le détail ; replié par défaut sur mobile. Carte quasi plein écran.
 - 2026-10-18 09:1x — Passe 23 (dirigée Thibault) : fix superposition radar ↔ pastille stats-zone (pastille remontée à bottom:118px sur mobile + masquée quand radar déplié).
+- 2026-10-18 09:1x — Passe 24 (dirigée Thibault) : 🐛 FIX fond de plan — foret-line avait un `match` line-color SANS défaut → style MapLibre invalide → aucune couche rendue. Ajout du fallback. + mode pro : bouton texte 'Où je suis' masqué, on garde l'icône GPS native.
