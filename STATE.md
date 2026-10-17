@@ -47,3 +47,4 @@
 - 2026-10-18 04:52 — Passe 15 : 🎯 Tooltip léger au survol des parcelles forêt (score + essence, suit le curseur) + 🗺️ lien "Y aller →" Google Maps dans le popup de chaque parking individuel.
 - 2026-10-18 05:55 — Passe 16 : 📊 Pill "stats de zone" en temps réel (bottom-center) — spots 🥇 + obs GBIF + essence dominante dans la vue courante, mis à jour sur moveend (600ms debounce, disparaît si zone vide).
 - 2026-10-18 06:29 — Passe 17 : 🔥 Heatmap densité GBIF native MapLibre — palette champêtre or→cuivre→brun-profond, s'intensifie avec le zoom, s'efface à z13.5 quand les points individuels apparaissent. Barre gradient dans la légende. Toggle "Trouvailles réelles" contrôle les 3 couches (heat+glow+pt).
+- 2026-10-18 07:09 — Passe 18 : 🔗 OG meta tags (og:image 1200×630, Twitter card) pour partage social + splash enrichi avec score du jour dynamique (anneau SVG, verdict, prochaine pluie).
