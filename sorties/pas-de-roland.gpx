@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="cepes.tbrun.dev" xmlns="http://www.topografix.com/GPX/1/1">
+ <metadata><name>Au Pas de Roland - balade famille (Itxassou)</name><desc>Aller-retour 1,75km (D+ 57m), le long de la Nive jusqu au rocher legendaire.</desc></metadata>
+ <wpt lat="43.320220" lon="-1.404620"><name>🚗 Camp de base</name><desc>Parking — on part à pied le long de la Nive.</desc><sym>Flag</sym></wpt>
+ <wpt lat="43.316860" lon="-1.403220"><name>🏞️ Bord de Nive</name><desc>Écoutez la rivière ! Cherchez les truites et les cincles plongeurs.</desc><sym>Flag</sym></wpt>
+ <wpt lat="43.313500" lon="-1.400420"><name>🐴 Le Pas de Roland</name><desc>LA LÉGENDE : le cheval de Roland (neveu de Charlemagne) aurait fendu ce rocher d'un coup de sabot pour ouvrir le passage ! Trouvez la brèche.</desc><sym>Flag</sym></wpt>
+ <trk><name>Pas de Roland</name><trkseg>
+  <trkpt lat="43.320220" lon="-1.404620"></trkpt>
+  <trkpt lat="43.319940" lon="-1.404340"></trkpt>
+  <trkpt lat="43.319660" lon="-1.404060"></trkpt>
+  <trkpt lat="43.319380" lon="-1.404060"></trkpt>
+  <trkpt lat="43.319100" lon="-1.404060"></trkpt>
+  <trkpt lat="43.318820" lon="-1.404060"></trkpt>
+  <trkpt lat="43.318540" lon="-1.404060"></trkpt>
+  <trkpt lat="43.318260" lon="-1.403780"></trkpt>
+  <trkpt lat="43.317980" lon="-1.403780"></trkpt>
+  <trkpt lat="43.317700" lon="-1.403780"></trkpt>
+  <trkpt lat="43.317420" lon="-1.403500"></trkpt>
+  <trkpt lat="43.317140" lon="-1.403500"></trkpt>
+  <trkpt lat="43.316860" lon="-1.403220"></trkpt>
+  <trkpt lat="43.316580" lon="-1.402940"></trkpt>
+  <trkpt lat="43.316300" lon="-1.402660"></trkpt>
+  <trkpt lat="43.316020" lon="-1.402380"></trkpt>
+  <trkpt lat="43.315740" lon="-1.402100"></trkpt>
+  <trkpt lat="43.315460" lon="-1.401820"></trkpt>
+  <trkpt lat="43.315180" lon="-1.401540"></trkpt>
+  <trkpt lat="43.314900" lon="-1.401260"></trkpt>
+  <trkpt lat="43.314620" lon="-1.400980"></trkpt>
+  <trkpt lat="43.314340" lon="-1.400700"></trkpt>
+  <trkpt lat="43.314060" lon="-1.400420"></trkpt>
+  <trkpt lat="43.313780" lon="-1.400140"></trkpt>
+  <trkpt lat="43.313500" lon="-1.400420"></trkpt>
+  <trkpt lat="43.313780" lon="-1.400140"></trkpt>
+  <trkpt lat="43.314060" lon="-1.400420"></trkpt>
+  <trkpt lat="43.314340" lon="-1.400700"></trkpt>
+  <trkpt lat="43.314620" lon="-1.400980"></trkpt>
+  <trkpt lat="43.314900" lon="-1.401260"></trkpt>
+  <trkpt lat="43.315180" lon="-1.401540"></trkpt>
+  <trkpt lat="43.315460" lon="-1.401820"></trkpt>
+  <trkpt lat="43.315740" lon="-1.402100"></trkpt>
+  <trkpt lat="43.316020" lon="-1.402380"></trkpt>
+  <trkpt lat="43.316300" lon="-1.402660"></trkpt>
+  <trkpt lat="43.316580" lon="-1.402940"></trkpt>
+  <trkpt lat="43.316860" lon="-1.403220"></trkpt>
+  <trkpt lat="43.317140" lon="-1.403500"></trkpt>
+  <trkpt lat="43.317420" lon="-1.403500"></trkpt>
+  <trkpt lat="43.317700" lon="-1.403780"></trkpt>
+  <trkpt lat="43.317980" lon="-1.403780"></trkpt>
+  <trkpt lat="43.318260" lon="-1.403780"></trkpt>
+  <trkpt lat="43.318540" lon="-1.404060"></trkpt>
+  <trkpt lat="43.318820" lon="-1.404060"></trkpt>
+  <trkpt lat="43.319100" lon="-1.404060"></trkpt>
+  <trkpt lat="43.319380" lon="-1.404060"></trkpt>
+  <trkpt lat="43.319660" lon="-1.404060"></trkpt>
+  <trkpt lat="43.319940" lon="-1.404340"></trkpt>
+  <trkpt lat="43.320220" lon="-1.404620"></trkpt>
+  <trkpt lat="43.320220" lon="-1.404620"></trkpt>
+ </trkseg></trk>
+</gpx>
