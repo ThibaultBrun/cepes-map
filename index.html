@@ -241,6 +241,8 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
     <div style="font-size:9.5px;opacity:.45;margin-top:3px;line-height:1.4">Cliquer une espèce pour filtrer · Opacité ∝ fraîcheur obs</div>
   </div>
   <div class="note">🎯 Vise les <b>spots en or</b> (versant sud chaud + bonne essence), ~10 j après une bonne pluie. Les points 🍄 sont de <b>vraies récoltes</b> déclarées (validation). Clique une parcelle ou un point pour le détail.</div>
+  <div style="margin-top:10px;padding-top:9px;border-top:1px solid var(--line);font-size:10.5px">
+    <a href="#" id="about-link" style="color:var(--gold);text-decoration:none">ℹ️ À propos · Sources · Mentions légales</a></div>
   <button id="install-btn" onclick="window._pwaPrompt&&window._pwaPrompt.prompt()">📲 Installer l'app sur mon téléphone</button>
 </div>
 <div id="zone-stats"></div>
@@ -704,6 +706,63 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   el.innerHTML=`<div class="t">🍄 Radar de poussée</div><div class="v">${dot}${p.verdict}</div><div class="d">${bits.join(" · ")}</div>${sparkHtml}${chkHtml}${conseil}`;
   el.style.display="block"; el.style.borderColor=col+"55";
 }).catch(()=>{});
+
+// ── À propos / Mentions légales ──
+const aboutOv = document.createElement("div");
+aboutOv.id = "about-ov";
+aboutOv.innerHTML = `<div id="about-box">
+  <button id="about-close">✕</button>
+  <h2>🍄 Carte à cèpes</h2>
+  <p class="lead">Carte de prospection <b>data-driven</b> pour la cueillette des cèpes en Pays Basque & Landes. On croise essences forestières, exposition/pente du relief, observations réelles et météo — <i>la science, pas la chance</i>.</p>
+
+  <h3>Comment ça marche</h3>
+  <p>Le cèpe pousse selon des facteurs prévisibles : essence hôte (chêne, châtaignier, hêtre, pin), versant chaud (sud + pente douce), et une fenêtre météo ~8-16 j après une bonne pluie. Chaque couche est calculée puis superposée ; les <b>spots en or</b> sont l'intersection forêt favorable × versant sud.</p>
+
+  <h3>Sources de données &amp; licences</h3>
+  <ul>
+    <li><b>BD Forêt V2</b>, <b>Ortho­photos</b>, <b>MNT Copernicus GLO-30</b> — IGN / Géoplateforme (licences ouvertes)</li>
+    <li><b>Essences 10 m</b> — ForestPaths / European Tree Genus Map (Blickensdörfer et al.), <b>CC-BY-4.0</b></li>
+    <li><b>Sentiers &amp; parkings</b> — © contributeurs OpenStreetMap (ODbL)</li>
+    <li><b>Observations de cèpes</b> — GBIF (occurrences publiques)</li>
+    <li><b>Météo</b> — Open-Meteo (CC-BY)</li>
+    <li>Rendu : MapLibre GL · PMTiles · GDAL · tippecanoe</li>
+  </ul>
+
+  <h3>Cueillette responsable</h3>
+  <p>Outil d'aide à la prospection, pas une vérité terrain. Respecte la réglementation : cueillette perso tolérée (souvent ~5 L/pers/jour, variable selon communes/ONF), <b>interdite en forêt privée sans accord</b>. Laisse les jeunes et les vieux sujets, ne retourne pas la litière. Les points GBIF sont des observations publiques, pas des coins personnels.</p>
+
+  <h3>Mentions légales</h3>
+  <p><b>Éditeur</b> : Thibault Brun — projet personnel non commercial.<br>
+  <b>Hébergement</b> : OVH (serveur dédié, France).<br>
+  <b>Données personnelles</b> : aucune donnée personnelle collectée, aucun compte, aucun cookie de suivi. La géolocalisation (bouton « Où je suis ») reste sur l'appareil et n'est jamais transmise.<br>
+  <b>Contact</b> : via <a href="https://tbrun.dev" style="color:var(--gold)">tbrun.dev</a>.</p>
+  <p style="opacity:.5;font-size:11px;margin-top:14px">Code source : <a href="https://github.com/ThibaultBrun/cepes-map" style="color:var(--gold)">github.com/ThibaultBrun/cepes-map</a></p>
+</div>`;
+document.body.appendChild(aboutOv);
+const aboutLink = document.getElementById("about-link");
+if (aboutLink) aboutLink.onclick = (e) => { e.preventDefault(); aboutOv.classList.add("on"); };
+document.getElementById("about-close").onclick = () => aboutOv.classList.remove("on");
+aboutOv.onclick = (e) => { if (e.target === aboutOv) aboutOv.classList.remove("on"); };
 </script>
+<style>
+  #about-ov{position:fixed;inset:0;z-index:30;background:rgba(10,7,4,.72);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    display:none;align-items:center;justify-content:center;padding:18px}
+  #about-ov.on{display:flex}
+  #about-box{position:relative;max-width:460px;max-height:86vh;overflow-y:auto;
+    background:linear-gradient(170deg,#241a10,#17110a);border:1px solid var(--line);
+    border-radius:20px;padding:22px 24px;color:var(--cream);box-shadow:0 20px 60px rgba(0,0,0,.6)}
+  #about-box h2{font-family:"Fraunces";font-style:italic;font-size:26px;margin-bottom:8px;
+    background:linear-gradient(180deg,#fff,#ecc98c);-webkit-background-clip:text;background-clip:text;color:transparent}
+  #about-box h3{font-family:"Fraunces";font-size:15px;color:var(--gold);margin:16px 0 5px}
+  #about-box p{font-size:12.5px;line-height:1.55;color:rgba(244,234,214,.82)}
+  #about-box .lead{font-size:13.5px;color:var(--cream)}
+  #about-box ul{margin:4px 0 0 2px;padding:0;list-style:none}
+  #about-box li{font-size:12px;line-height:1.7;color:rgba(244,234,214,.82);padding-left:14px;position:relative}
+  #about-box li::before{content:"·";position:absolute;left:2px;color:var(--gold)}
+  #about-box a{color:var(--gold)}
+  #about-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;
+    background:rgba(244,234,214,.1);border:1px solid var(--line);color:var(--cream);font-size:15px;cursor:pointer}
+</style>
 </body>
 </html>
