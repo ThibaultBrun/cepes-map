@@ -266,10 +266,31 @@ map.on("mouseenter","parkings-cluster",()=>map.getCanvas().style.cursor="pointer
 map.on("mouseleave","parkings-cluster",()=>map.getCanvas().style.cursor="");
 const GBIF_COL={"Boletus edulis":"#f5c842","Boletus aereus":"#5c2d00","Boletus pinophilus":"#c0430c","Boletus reticulatus":"#d4a558"};
 const GBIF_FR={"Boletus edulis":"Cèpe de Bordeaux","Boletus aereus":"Cèpe tête-de-nègre","Boletus pinophilus":"Cèpe des pins","Boletus reticulatus":"Cèpe réticulé"};
+const GBIF_HAB={
+  "Boletus edulis":"Chênaies & hêtraies, 300–1500 m. Chair blanche immuable, chapeau brun noisette, réseau blanc sur le pied.",
+  "Boletus aereus":"Chênaies thermophiles, sols acides. Chapeau très sombre (brun-noir), chair jaune virant légèrement. Rare & convoité.",
+  "Boletus pinophilus":"Pessières & pinèdes, sol sableux ou acide. Chapeau brun-rouge foncé, pied à réseau sur fond brun.",
+  "Boletus reticulatus":"Hêtraies & chênaies, altitude. Chapeau brun clair mat, réseau complet sur tout le pied. Saison plus précoce."
+};
+const GBIF_SVG={
+  "Boletus edulis":`<svg width="40" height="38" viewBox="0 0 40 38" fill="none"><ellipse cx="20" cy="13" rx="17" ry="11" fill="#8B5E3C"/><ellipse cx="20" cy="13" rx="15" ry="9" fill="#A0714F"/><rect x="15" y="22" width="10" height="14" rx="4" fill="#D4B896"/><rect x="16" y="23" width="8" height="12" rx="3" fill="#C4A278" opacity=".5"/></svg>`,
+  "Boletus aereus":`<svg width="40" height="38" viewBox="0 0 40 38" fill="none"><ellipse cx="20" cy="13" rx="16" ry="10" fill="#2c1a0a"/><ellipse cx="20" cy="13" rx="13" ry="8" fill="#3d2310"/><rect x="15" y="21" width="10" height="15" rx="4" fill="#5c3820"/><rect x="16" y="22" width="8" height="13" rx="3" fill="#3d2310" opacity=".5"/></svg>`,
+  "Boletus pinophilus":`<svg width="40" height="38" viewBox="0 0 40 38" fill="none"><ellipse cx="20" cy="13" rx="17" ry="10" fill="#8B2500"/><ellipse cx="20" cy="13" rx="15" ry="8" fill="#a03010"/><rect x="15" y="21" width="10" height="15" rx="4" fill="#C4906A"/><rect x="16" y="22" width="8" height="13" rx="3" fill="#b07050" opacity=".5"/></svg>`,
+  "Boletus reticulatus":`<svg width="40" height="38" viewBox="0 0 40 38" fill="none"><ellipse cx="20" cy="12" rx="17" ry="9" fill="#C8A96A"/><ellipse cx="20" cy="12" rx="14" ry="7" fill="#D4B896"/><rect x="15" y="19" width="10" height="16" rx="4" fill="#E8D4B0"/><rect x="16" y="20" width="8" height="14" rx="3" fill="#c8a96a" opacity=".45"/></svg>`
+};
 map.on("click","gbif-pt",(e)=>{const p=e.features[0].properties;
   const col=GBIF_COL[p.species]||"#f5c842";
   const fr=GBIF_FR[p.species]||p.species||"Boletus";
-  new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${col};margin-right:5px;vertical-align:middle"></span><b>${fr}</b><br><span style="opacity:.65;font-size:11px;font-style:italic">${p.species||""}</span><br><span style="opacity:.65">Observation${p.year?" · "+p.year:""}</span>`).addTo(map);});
+  const hab=GBIF_HAB[p.species]||"";
+  const svg=GBIF_SVG[p.species]||"";
+  new maplibregl.Popup({maxWidth:"240px"}).setLngLat(e.lngLat).setHTML(
+    `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(224,168,74,.2)">
+      ${svg}
+      <div><b style="font-size:14px;font-family:'Fraunces';font-style:italic">${fr}</b><br><span style="font-size:10.5px;font-style:italic;opacity:.6">${p.species||""}</span></div>
+    </div>
+    <div style="font-size:10.5px;line-height:1.5;opacity:.8;margin-bottom:6px">${hab}</div>
+    <div style="font-size:10px;opacity:.5">🗓️ Observation${p.year?" · "+p.year:""} · <span style="color:${col}">●</span> ${fr}</div>`
+  ).addTo(map);});
 // Coins panel: list top score=3 parcels visible on screen
 let _coinsOpen = true;
 document.getElementById("coins-head").onclick = () => {
@@ -473,8 +494,19 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
     ${chkRow("📅","Saison :",saison)}
     ${chkRow("🔮","Fenêtre future :",futur)}
   </div>`;
+  // Conseil de prospection personnalisé
+  let conseil = "";
+  if(p.score>=75){
+    conseil = `<div style="margin-top:10px;padding:8px 10px;border-radius:10px;background:rgba(74,193,115,.1);border:1px solid rgba(74,193,115,.3);font-size:10.5px;line-height:1.5"><span style="font-weight:700;color:#4fc37a">💡 Conseil</span> — Conditions <b>excellentes</b>. Visez les chênaies versant sud (spots 🥇 en or) dès ce weekend. Préférez le matin après rosée.</div>`;
+  } else if(p.score>=50){
+    conseil = `<div style="margin-top:10px;padding:8px 10px;border-radius:10px;background:rgba(154,205,50,.08);border:1px solid rgba(154,205,50,.25);font-size:10.5px;line-height:1.5"><span style="font-weight:700;color:#9acd32">💡 Conseil</span> — Conditions <b>favorables</b>. Explorez les hêtraies fraîches (≥400 m). Croisez avec la couche Essences.</div>`;
+  } else if(p.score>=30){
+    conseil = `<div style="margin-top:10px;padding:8px 10px;border-radius:10px;background:rgba(227,171,77,.08);border:1px solid rgba(227,171,77,.25);font-size:10.5px;line-height:1.5"><span style="font-weight:700;color:#e3ab4d">💡 Conseil</span> — Conditions <b>passables</b>. Attendez la prochaine pluie prévue${p.next_rain?" ("+p.next_rain.date.slice(8,10)+"/"+p.next_rain.date.slice(5,7)+")":""} et sortez ~8–10 j après.</div>`;
+  } else {
+    conseil = `<div style="margin-top:10px;padding:8px 10px;border-radius:10px;background:rgba(143,179,207,.08);border:1px solid rgba(143,179,207,.22);font-size:10.5px;line-height:1.5"><span style="font-weight:700;color:#8fb3cf">💡 Conseil</span> — Hors fenêtre. Préparez vos spots à l'avance sur la carte (export GPX). Revenez après une bonne pluie.</div>`;
+  }
   const el=document.getElementById("push");
-  el.innerHTML=`<div class="t">🍄 Radar de poussée</div><div class="v">${dot}${p.verdict}</div><div class="d">${bits.join(" · ")}</div>${sparkHtml}${chkHtml}`;
+  el.innerHTML=`<div class="t">🍄 Radar de poussée</div><div class="v">${dot}${p.verdict}</div><div class="d">${bits.join(" · ")}</div>${sparkHtml}${chkHtml}${conseil}`;
   el.style.display="block"; el.style.borderColor=col+"55";
 }).catch(()=>{});
 </script>
