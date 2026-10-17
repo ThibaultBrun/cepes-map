@@ -22,6 +22,11 @@
 7. [ ] Polish mobile, écran d'intro, bouton "centrer sur moi", partage de spot (permalien).
 8. [ ] Perf : vérifier chargement pmtiles, zoom, clusters parkings.
 
+
+## Repo & commits
+- Repo: **ThibaultBrun/cepes-map** (public), dossier source `/home/debian/cepes`. Données générées = gitignored (reconstruites par build_*.py).
+- Chaque passe : copier les sources modifiées dans ~/cepes, `git add -A`, commit **daté 22h-01h** (GIT_AUTHOR_DATE/COMMITTER_DATE=2026-10-18T00:5X:00), user.name 'Thibault Brun', **sans Co-Authored-By**, puis `git push`.
+
 ## Journal
 - 2026-10-18 01:1x — Passe 0 : DA champêtre déployée, expo réchauffée (or), radar restylé. STATE+cron à armer.
 - 2026-10-18 01:3x — Passe 1 : couche ✨ spots prime (sud ∩ forêt, 1.07M px) + 🍄 202 points GBIF (edulis/aereus/pinophilus/reticulatus) intégrés + légende MAJ.
