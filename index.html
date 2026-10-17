@@ -173,6 +173,10 @@
   <div class="leg"><span class="sw" style="background:#f5c842;border-color:#d4a012"></span> 🥇 Meilleurs coins (chêne/châtaignier/hêtre)</div>
   <div class="leg" style="flex-direction:column;align-items:flex-start;gap:2px">
     <span style="font-size:12px;font-weight:600">🍄 Trouvailles réelles (GBIF)</span>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:3px;margin-bottom:2px">
+      <div style="width:80px;height:7px;border-radius:4px;background:linear-gradient(90deg,rgba(185,115,62,0.15),#e0a84a,#b45014,#5a0a00);border:1px solid rgba(255,255,255,0.12)"></div>
+      <span style="font-size:10px;opacity:.6">densité</span>
+    </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:2px">
       <span class="leg" style="gap:4px;font-size:11px;padding:0"><span class="sw" style="background:#f5c842;border-color:#b9351a;width:10px;height:10px;flex-shrink:0"></span>B. edulis</span>
       <span class="leg" style="gap:4px;font-size:11px;padding:0"><span class="sw" style="background:#5c2d00;border-color:#ff9944;width:10px;height:10px;flex-shrink:0"></span>B. aereus</span>
@@ -230,6 +234,20 @@ const map = new maplibregl.Map({
       { id: "expo", type: "raster", source: "expo", layout: { visibility: "none" }, paint: { "raster-opacity": 0.7 } },
       { id: "essence", type: "raster", source: "essence", layout: { visibility: "none" }, paint: { "raster-opacity": 0.72 } },
       { id: "prime", type: "raster", source: "prime", paint: { "raster-opacity": 0.85 } },
+      { id: "gbif-heat", type: "heatmap", source: "gbif", layout: { visibility: "none" },
+        paint: {
+          "heatmap-weight": 1,
+          "heatmap-intensity": ["interpolate",["linear"],["zoom"],7,0.6,13,1.8],
+          "heatmap-radius": ["interpolate",["linear"],["zoom"],7,20,11,35,14,55],
+          "heatmap-opacity": ["interpolate",["linear"],["zoom"],11,0.82,13.5,0.0],
+          "heatmap-color": ["interpolate",["linear"],["heatmap-density"],
+            0,"rgba(0,0,0,0)",
+            0.15,"rgba(185,115,62,0.08)",
+            0.35,"rgba(224,168,74,0.55)",
+            0.6,"rgba(180,80,20,0.78)",
+            0.85,"rgba(120,30,0,0.88)",
+            1,"rgba(90,10,0,0.95)"]
+        }},
       { id: "gbif-glow", type: "circle", source: "gbif", layout: { visibility: "none" },
         paint: { "circle-radius": 10, "circle-color": ["match",["get","species"],"Boletus edulis","#f5c842","Boletus aereus","#7a3500","Boletus pinophilus","#ff5a1a","Boletus reticulatus","#d4a558","#ff5a3c"], "circle-blur": 1.1, "circle-opacity": 0.55 } },
       { id: "gbif-pt", type: "circle", source: "gbif", layout: { visibility: "none" },
@@ -269,7 +287,7 @@ const vis=(ids,on)=>ids.forEach(id=>map.setLayoutProperty(id,"visibility",on?"vi
 document.getElementById("t-foret").onchange=e=>vis(["foret","foret-line"],e.target.checked);
 document.getElementById("t-prime").onchange=e=>vis(["prime"],e.target.checked);
 document.getElementById("t-best").onchange=e=>{vis(["foret-best","foret-best-line"],e.target.checked);document.getElementById("coins").style.display=e.target.checked?"flex":"none";};
-document.getElementById("t-gbif").onchange =e=>vis(["gbif-glow","gbif-pt"],e.target.checked);
+document.getElementById("t-gbif").onchange =e=>vis(["gbif-heat","gbif-glow","gbif-pt"],e.target.checked);
 document.getElementById("t-ess").onchange  =e=>{vis(["essence"],e.target.checked);document.getElementById("leg-ess").style.display=e.target.checked?"":"none";};
 document.getElementById("t-expo").onchange =e=>vis(["expo"],e.target.checked);
 document.getElementById("t-sent").onchange =e=>vis(["sentiers"],e.target.checked);
