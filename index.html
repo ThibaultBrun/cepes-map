@@ -59,7 +59,7 @@
   .leg{display:flex;align-items:center;gap:8px;font-size:11.5px;margin:5px 0 5px 1px;color:rgba(244,234,214,.85)}
   .sw{width:14px;height:14px;border-radius:4px;flex:none;border:1px solid rgba(255,255,255,.2)}
   .note{font-size:10px;color:var(--faint);margin-top:11px;line-height:1.45}
-  #push{bottom:16px;left:14px;max-width:300px;padding:12px 15px;display:none}
+  #push{position:static;z-index:auto;margin:12px 0 2px;max-width:none;padding:12px 14px;display:none;box-shadow:none;background:rgba(0,0,0,.18);border-color:var(--line);border-radius:14px;-webkit-backdrop-filter:none;backdrop-filter:none}
   #push .t{font-family:"Fraunces";font-style:italic;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
   #push .v{font-weight:600;font-size:14.5px;line-height:1.25}
   #push .d{color:var(--dim);margin-top:6px;line-height:1.5;font-size:11.5px}
@@ -141,10 +141,9 @@
     font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2}
   @media(max-width:560px){
     .hero{max-width:calc(100vw - 86px);top:14px;left:70px}
-    #push{max-width:calc(100vw - 28px);bottom:56px}
     #coins{display:none}
     #loc-btn{bottom:14px;font-size:12px;padding:8px 14px}
-    #zone-stats{bottom:118px;max-width:calc(100vw - 28px)}
+    #zone-stats{bottom:16px;max-width:calc(100vw - 28px)}
   }
   #install-btn{display:none;width:100%;margin-top:8px;padding:7px 12px;border:1px solid var(--line);
     border-radius:10px;background:rgba(227,171,77,.12);color:var(--gold);font-size:11.5px;
@@ -209,6 +208,7 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   <div class="kick">Carte de prospection</div>
   <h1>Cèpes</h1>
   <div class="sub">Pays Basque · Landes — 50 km autour de Bayonne</div>
+  <div class="card" id="push"></div>
   <div id="geocoder-wrap">
     <input id="geocoder" type="text" placeholder="🔍 Chercher une commune…" autocomplete="off">
     <div id="geo-results"></div>
@@ -255,7 +255,6 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   <button id="install-btn" onclick="window._pwaPrompt&&window._pwaPrompt.prompt()">📲 Installer l'app sur mon téléphone</button>
 </div>
 <div id="zone-stats"></div>
-<div class="card" id="push"></div>
 <div class="card" id="coins">
   <div id="coins-head">
     <div class="kick">🥇 Meilleurs coins visibles</div>
@@ -746,9 +745,9 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   el.innerHTML=`<div class="push-head"><div style="flex:1;min-width:0"><div class="t">🍄 Radar de poussée</div><div class="v">${dot}${p.verdict}</div></div><span class="push-chev">▾</span></div><div class="push-body"><div class="d">${bits.join(" · ")}</div>${sparkHtml}${chkHtml}${conseil}</div>`;
   el.style.display="block"; el.style.borderColor=col+"55";
   const head=el.querySelector(".push-head");
-  const setMini=(m)=>{el.classList.toggle("mini",m);const cv=el.querySelector(".push-chev");if(cv)cv.textContent=m?"▸":"▾";const zs=document.getElementById("zone-stats");if(zs&&window.innerWidth<760)zs.style.visibility=m?"":"hidden";};
+  const setMini=(m)=>{el.classList.toggle("mini",m);const cv=el.querySelector(".push-chev");if(cv)cv.textContent=m?"▸":"▾";};
   head.onclick=()=>setMini(!el.classList.contains("mini"));
-  setMini(window.innerWidth<760);
+  setMini(false);
 }).catch(()=>{});
 
 // ── À propos / Mentions légales ──

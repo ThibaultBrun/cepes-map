@@ -55,3 +55,4 @@
 - 2026-10-18 09:0x — Passe 22 (dirigée Thibault) : radar de poussée **repliable** — barre compacte (verdict + chevron), tap = déplie le détail ; replié par défaut sur mobile. Carte quasi plein écran.
 - 2026-10-18 09:1x — Passe 23 (dirigée Thibault) : fix superposition radar ↔ pastille stats-zone (pastille remontée à bottom:118px sur mobile + masquée quand radar déplié).
 - 2026-10-18 09:1x — Passe 24 (dirigée Thibault) : 🐛 FIX fond de plan — foret-line avait un `match` line-color SANS défaut → style MapLibre invalide → aucune couche rendue. Ajout du fallback. + mode pro : bouton texte 'Où je suis' masqué, on garde l'icône GPS native.
+- 2026-10-18 09:2x — Passe 25 (dirigée Thibault) : 🍄 radar de poussée déplacé DANS le menu burger — #push n'est plus un panneau flottant, il est intégré en haut du tiroir hero (position:static, fond inset). Carte totalement dégagée hors burger. zone-stats remis à bottom:16px (plus de risque de superposition).
