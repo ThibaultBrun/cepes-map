@@ -72,6 +72,7 @@
   <label class="row"><input type="checkbox" id="t-prime" checked> ✨ Spots prime (sud ∩ forêt)</label>
   <label class="row"><input type="checkbox" id="t-best" checked> 🥇 Meilleurs coins (cèpe de Bordeaux)</label>
   <label class="row"><input type="checkbox" id="t-gbif"> 🍄 Trouvailles réelles (GBIF)</label>
+  <label class="row"><input type="checkbox" id="t-ess"> 🌲 Essences 10m (Copernicus)</label>
   <label class="row"><input type="checkbox" id="t-expo"> ☀️ Versants sud (large)</label>
   <label class="row"><input type="checkbox" id="t-sent"> 🥾 Sentiers &amp; pistes</label>
   <label class="row"><input type="checkbox" id="t-park"> 🅿️ Parkings</label>
@@ -79,6 +80,12 @@
   <div class="leg"><span class="sw" style="background:#2f8f4e"></span> Chênes · châtaignier · hêtre</div>
   <div class="leg"><span class="sw" style="background:#7cae52"></span> Feuillus · pin maritime</div>
   <div class="leg"><span class="sw" style="background:#cfa24a"></span> Autres conifères</div>
+  <div id="leg-ess" style="display:none">
+    <div class="leg"><span class="sw" style="background:#d4a017"></span> 🌲 Chêne (Quercus) — top cèpes</div>
+    <div class="leg"><span class="sw" style="background:#a0522d"></span> 🍂 Hêtre (Fagus) — top cèpes</div>
+    <div class="leg"><span class="sw" style="background:#52b788"></span> 🌿 Feuillu mixte — bon</div>
+    <div class="leg"><span class="sw" style="background:#2d6a4f"></span> 🌲 Pin (Pinus) — B. pinophilus</div>
+  </div>
   <div class="leg"><span class="sw" style="background:linear-gradient(90deg,#ffd76a,#b9733e)"></span> ✨ Spots prime (versant sud ∩ forêt)</div>
   <div class="leg"><span class="sw" style="background:#f5c842;border-color:#d4a012"></span> 🥇 Meilleurs coins (chêne/châtaignier/hêtre)</div>
   <div class="leg"><span class="sw" style="background:#ffe08a;border-color:#b9351a"></span> 🍄 Trouvailles réelles (GBIF)</div>
@@ -108,6 +115,7 @@ const map = new maplibregl.Map({
       foret: { type: "vector", url: "pmtiles://foret.pmtiles" },
       sentiers: { type: "vector", url: "pmtiles://sentiers.pmtiles" },
       parkings: { type: "geojson", data: "parkings.geojson" },
+      essence: { type: "raster", tiles: ["https://cepes.tbrun.dev/essence/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
       prime: { type: "raster", tiles: ["https://cepes.tbrun.dev/prime/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
       gbif: { type: "geojson", data: "gbif.geojson" }
     },
@@ -126,6 +134,7 @@ const map = new maplibregl.Map({
         filter: ["==", ["get","score"], 3],
         paint: { "line-color": "#f5c842", "line-width": 1.4, "line-opacity": 0.85 } },
       { id: "expo", type: "raster", source: "expo", layout: { visibility: "none" }, paint: { "raster-opacity": 0.7 } },
+      { id: "essence", type: "raster", source: "essence", layout: { visibility: "none" }, paint: { "raster-opacity": 0.72 } },
       { id: "prime", type: "raster", source: "prime", paint: { "raster-opacity": 0.85 } },
       { id: "gbif-glow", type: "circle", source: "gbif", layout: { visibility: "none" },
         paint: { "circle-radius": 9, "circle-color": "#ff5a3c", "circle-blur": 1, "circle-opacity": 0.5 } },
@@ -155,6 +164,7 @@ document.getElementById("t-foret").onchange=e=>vis(["foret","foret-line"],e.targ
 document.getElementById("t-prime").onchange=e=>vis(["prime"],e.target.checked);
 document.getElementById("t-best").onchange=e=>{vis(["foret-best","foret-best-line"],e.target.checked);document.getElementById("coins").style.display=e.target.checked?"flex":"none";};
 document.getElementById("t-gbif").onchange =e=>vis(["gbif-glow","gbif-pt"],e.target.checked);
+document.getElementById("t-ess").onchange  =e=>{vis(["essence"],e.target.checked);document.getElementById("leg-ess").style.display=e.target.checked?"":"none";};
 document.getElementById("t-expo").onchange =e=>vis(["expo"],e.target.checked);
 document.getElementById("t-sent").onchange =e=>vis(["sentiers"],e.target.checked);
 document.getElementById("t-park").onchange =e=>vis(["parkings","parkings-p"],e.target.checked);

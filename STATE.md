@@ -17,7 +17,7 @@
 2. [x] **Croisement strict** : voile doré uniquement SUR la forêt favorable (masque expo×forêt) → vraie couche "spots prime".
 3. [x] **Points GBIF Boletus** (observations réelles) → calque validation + popup.
 4. [x] **Couche "spots prime"** dédiée : parcelles score 3 ∩ versant sud → surbrillance + liste cliquable "meilleurs coins".
-5. [ ] **Essences 10 m** (essence10.tif PRÊT: ForestPaths genre arbre, codes Pinus=2 Fagus=3 Quercus=4 broadleaf=6) → calque raster scoré + affiner : Copernicus HRL (feuillu/conifère 10m) ou carte essences Sentinel pour affiner le score.
+5. [x] **Essences 10 m** (essence10.tif PRÊT: ForestPaths genre arbre, codes Pinus=2 Fagus=3 Quercus=4 broadleaf=6) → calque raster scoré + affiner : Copernicus HRL (feuillu/conifère 10m) ou carte essences Sentinel pour affiner le score.
 6. [ ] Radar : prévoir la **fenêtre future** (indice sur les 7 j de prévi) + mini courbe pluie.
 7. [ ] Polish mobile, écran d'intro, bouton "centrer sur moi", partage de spot (permalien).
 8. [ ] Perf : vérifier chargement pmtiles, zoom, clusters parkings.
@@ -31,3 +31,4 @@
 - 2026-10-18 01:1x — Passe 0 : DA champêtre déployée, expo réchauffée (or), radar restylé. STATE+cron à armer.
 - 2026-10-18 01:3x — Passe 1 : couche ✨ spots prime (sud ∩ forêt, 1.07M px) + 🍄 202 points GBIF (edulis/aereus/pinophilus/reticulatus) intégrés + légende MAJ.
 - 2026-10-18 01:47 — Passe 2 : 🥇 panel "Meilleurs coins" (top-right, queryRenderedFeatures score=3, clickable flyTo+popup) + highlight gold foret-best layers + toggle + légende MAJ.
+- 2026-10-18 01:57 — Passe 3 : 🌲 couche Essences 10m (Copernicus) : Quercus or/Fagus rouille/Feuillu vert/Pinus sombre → build_essence.py + tuiles /srv/www/cepes/essence (z9-13) + toggle + légende dynamique (affichée uniquement quand layer actif).
