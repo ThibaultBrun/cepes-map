@@ -219,7 +219,8 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   <label class="row"><input type="checkbox" id="t-best" checked> 🥇 Meilleurs coins (cèpe de Bordeaux)</label>
   <label class="row"><input type="checkbox" id="t-gbif"> 🍄 Trouvailles réelles (GBIF)</label>
   <label class="row"><input type="checkbox" id="t-ess"> 🌲 Essences 10m (Copernicus)</label>
-  <label class="row"><input type="checkbox" id="t-expo"> ☀️ Versants sud (large)</label>
+  <label class="row"><input type="checkbox" id="t-lisiere"> 🌾 Lisières (bordures forêt)</label>
+  <label class="row"><input type="checkbox" id="t-expo"> ☀️ Versants favorables</label>
   <label class="row"><input type="checkbox" id="t-strava"> 🥾 Fréquentation (Strava rando)</label>
   <label class="row"><input type="checkbox" id="t-sent"> 🥾 Sentiers &amp; pistes</label>
   <label class="row"><input type="checkbox" id="t-park"> 🅿️ Parkings</label>
@@ -233,7 +234,8 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
     <div class="leg"><span class="sw" style="background:#52b788"></span> 🌿 Feuillu mixte — bon</div>
     <div class="leg"><span class="sw" style="background:#2d6a4f"></span> 🌲 Pin (Pinus) — B. pinophilus</div>
   </div>
-  <div class="leg"><span class="sw" style="background:linear-gradient(90deg,#ffd76a,#b9733e)"></span> ✨ Spots prime (versant sud ∩ forêt)</div>
+  <div class="leg"><span class="sw" style="background:linear-gradient(90deg,#ffd76a,#b9733e)"></span> ✨ Spots prime (essence × expo + lisière)</div>
+  <div class="leg"><span class="sw" style="background:rgba(190,205,95,.7);border-color:#9bb54a"></span> 🌾 Lisières (effet de bordure)</div>
   <div class="leg"><span class="sw" style="background:#f5c842;border-color:#d4a012"></span> 🥇 Meilleurs coins (chêne/châtaignier/hêtre)</div>
   <div class="leg" style="flex-direction:column;align-items:flex-start;gap:2px">
     <span style="font-size:12px;font-weight:600">🍄 Trouvailles réelles (GBIF)</span>
@@ -249,7 +251,7 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
     </div>
     <div style="font-size:9.5px;opacity:.45;margin-top:3px;line-height:1.4">Cliquer une espèce pour filtrer · Opacité ∝ fraîcheur obs</div>
   </div>
-  <div class="note">🎯 Vise les <b>spots en or</b> (versant sud chaud + bonne essence), ~10 j après une bonne pluie. Les points 🍄 sont de <b>vraies récoltes</b> déclarées (validation). Clique une parcelle ou un point pour le détail.</div>
+  <div class="note">🎯 Vise les <b>spots en or</b> : bonne essence (chêne/châtaignier/hêtre) d'abord, puis <b>lisières</b> et versants doux, ~10 j après une bonne pluie. Le nord/est frais compte autant que le sud ici (climat atlantique). Les points 🍄 sont de <b>vraies récoltes</b> déclarées. Clique une parcelle ou un point pour le détail.</div>
   <div style="margin-top:10px;padding-top:9px;border-top:1px solid var(--line);font-size:10.5px">
     <a href="#" id="about-link" style="color:var(--gold);text-decoration:none">ℹ️ À propos · Sources · Mentions légales</a></div>
   <button id="install-btn" onclick="window._pwaPrompt&&window._pwaPrompt.prompt()">📲 Installer l'app sur mon téléphone</button>
@@ -284,7 +286,8 @@ const map = new maplibregl.Map({
       essence: { type: "raster", tiles: ["https://cepes.tbrun.dev/essence/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
       prime: { type: "raster", tiles: ["https://cepes.tbrun.dev/prime/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
       gbif: { type: "geojson", data: "gbif.geojson" },
-      strava: { type: "raster", tiles: ["https://cepes.tbrun.dev/strava/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 }
+      strava: { type: "raster", tiles: ["https://cepes.tbrun.dev/strava/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
+      lisiere: { type: "raster", tiles: ["https://cepes.tbrun.dev/lisiere/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 }
     },
     layers: [
       { id: "ortho", type: "raster", source: "ortho" },
@@ -302,6 +305,7 @@ const map = new maplibregl.Map({
         filter: ["==", ["get","score"], 3],
         paint: { "line-color": "#f5c842", "line-width": 1.4, "line-opacity": 0.85 } },
       { id: "expo", type: "raster", source: "expo", layout: { visibility: "none" }, paint: { "raster-opacity": 0.7 } },
+      { id: "lisiere", type: "raster", source: "lisiere", layout: { visibility: "none" }, paint: { "raster-opacity": 0.8 } },
       { id: "strava", type: "raster", source: "strava", layout: { visibility: "none" }, paint: { "raster-opacity": 0.8 } },
       { id: "essence", type: "raster", source: "essence", layout: { visibility: "none" }, paint: { "raster-opacity": 0.72 } },
       { id: "prime", type: "raster", source: "prime", paint: { "raster-opacity": 0.85 } },
@@ -365,6 +369,7 @@ document.getElementById("t-best").onchange=e=>{vis(["foret-best","foret-best-lin
 document.getElementById("t-gbif").onchange =e=>vis(["gbif-heat","gbif-glow","gbif-pt"],e.target.checked);
 document.getElementById("t-ess").onchange  =e=>{vis(["essence"],e.target.checked);document.getElementById("leg-ess").style.display=e.target.checked?"":"none";};
 document.getElementById("t-expo").onchange =e=>vis(["expo"],e.target.checked);
+document.getElementById("t-lisiere").onchange=e=>vis(["lisiere"],e.target.checked);
 document.getElementById("t-strava").onchange=e=>vis(["strava"],e.target.checked);
 document.getElementById("t-sent").onchange =e=>vis(["sentiers"],e.target.checked);
 document.getElementById("t-park").onchange =e=>vis(["parkings-cluster","parkings-cluster-count","parkings","parkings-p"],e.target.checked);
