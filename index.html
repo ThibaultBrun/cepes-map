@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#161009">
+<title>Cèpes · Pays Basque — carte de prospection</title>
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/pmtiles@3.2.1/dist/pmtiles.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#f4ead6; --dim:rgba(244,234,214,.6); --faint:rgba(244,234,214,.38);
+    --wood:rgba(26,19,12,.82); --line:rgba(224,168,74,.22);
+    --moss:#5aa05a; --bolet:#b9733e; --gold:#e3ab4d;
+  }
+  *{margin:0;box-sizing:border-box}
+  html,body,#map{height:100%;width:100%}
+  body{font-family:"Inter",system-ui,sans-serif;color:var(--cream)}
+  .card{position:absolute;z-index:5;background:var(--wood);
+    -webkit-backdrop-filter:blur(12px) saturate(1.2);backdrop-filter:blur(12px) saturate(1.2);
+    border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 34px rgba(0,0,0,.45);
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/></svg>")}
+  .hero{top:14px;left:14px;max-width:270px;padding:15px 17px}
+  .hero .kick{font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold)}
+  .hero h1{font-family:"Fraunces";font-style:italic;font-weight:600;font-size:34px;line-height:.95;margin:3px 0 2px;
+    background:linear-gradient(180deg,#fff,#ecc98c);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero .sub{font-size:11.5px;color:var(--dim);margin-bottom:12px}
+  .row{display:flex;align-items:center;gap:9px;font-size:13px;margin:8px 0;cursor:pointer;user-select:none}
+  .row input{appearance:none;width:34px;height:19px;border-radius:12px;background:rgba(244,234,214,.18);position:relative;cursor:pointer;transition:.2s;flex:none}
+  .row input:checked{background:var(--moss)}
+  .row input::after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:#fff;transition:.2s}
+  .row input:checked::after{left:17px}
+  .sep{height:1px;background:var(--line);margin:11px 0}
+  .leg{display:flex;align-items:center;gap:8px;font-size:11.5px;margin:5px 0 5px 1px;color:rgba(244,234,214,.85)}
+  .sw{width:14px;height:14px;border-radius:4px;flex:none;border:1px solid rgba(255,255,255,.2)}
+  .note{font-size:10px;color:var(--faint);margin-top:11px;line-height:1.45}
+  #push{bottom:16px;left:14px;max-width:300px;padding:12px 15px;display:none}
+  #push .t{font-family:"Fraunces";font-style:italic;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+  #push .v{font-weight:600;font-size:14.5px;line-height:1.25}
+  #push .d{color:var(--dim);margin-top:6px;line-height:1.5;font-size:11.5px}
+  .maplibregl-popup-content{background:#241a10;color:var(--cream);border-radius:12px;font-size:12px;padding:10px 12px;border:1px solid var(--line)}
+  .maplibregl-popup-content b{font-size:13px;font-family:"Fraunces";font-style:italic}
+  .maplibregl-popup-tip{border-top-color:#241a10!important;border-bottom-color:#241a10!important}
+  .maplibregl-ctrl-group{background:var(--wood)!important;border:1px solid var(--line)!important}
+  .maplibregl-ctrl-group button+button{border-top:1px solid var(--line)!important}
+  .maplibregl-ctrl button .maplibregl-ctrl-icon{filter:invert(.85) sepia(.3)}
+  @media(max-width:560px){.hero{max-width:min(78vw,270px)} #push{max-width:min(82vw,300px)}}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div class="card hero">
+  <div class="kick">Carte de prospection</div>
+  <h1>Cèpes</h1>
+  <div class="sub">Pays Basque · Landes — 50 km autour de Bayonne</div>
+  <label class="row"><input type="checkbox" id="t-foret" checked> 🌳 Potentiel forêt</label>
+  <label class="row"><input type="checkbox" id="t-prime" checked> ✨ Spots prime (sud ∩ forêt)</label>
+  <label class="row"><input type="checkbox" id="t-gbif"> 🍄 Trouvailles réelles (GBIF)</label>
+  <label class="row"><input type="checkbox" id="t-expo"> ☀️ Versants sud (large)</label>
+  <label class="row"><input type="checkbox" id="t-sent"> 🥾 Sentiers &amp; pistes</label>
+  <label class="row"><input type="checkbox" id="t-park"> 🅿️ Parkings</label>
+  <div class="sep"></div>
+  <div class="leg"><span class="sw" style="background:#2f8f4e"></span> Chênes · châtaignier · hêtre</div>
+  <div class="leg"><span class="sw" style="background:#7cae52"></span> Feuillus · pin maritime</div>
+  <div class="leg"><span class="sw" style="background:#cfa24a"></span> Autres conifères</div>
+  <div class="leg"><span class="sw" style="background:linear-gradient(90deg,#ffd76a,#b9733e)"></span> ✨ Spots prime (versant sud ∩ forêt)</div>
+  <div class="leg"><span class="sw" style="background:#ffe08a;border-color:#b9351a"></span> 🍄 Trouvailles réelles (GBIF)</div>
+  <div class="note">🎯 Vise les <b>spots en or</b> (versant sud chaud + bonne essence), ~10 j après une bonne pluie. Les points 🍄 sont de <b>vraies récoltes</b> déclarées (validation). Clique une parcelle ou un point pour le détail.</div>
+</div>
+<div class="card" id="push"></div>
+<script>
+const proto = new pmtiles.Protocol();
+maplibregl.addProtocol("pmtiles", proto.tile);
+const IGN = "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/jpeg&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}";
+const map = new maplibregl.Map({
+  container: "map", maxPitch: 80, hash: true,
+  style: {
+    version: 8,
+    glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+    sources: {
+      ortho: { type: "raster", tiles: [IGN], tileSize: 256, maxzoom: 19, attribution: "© IGN/Géoplateforme · Copernicus · OSM" },
+      dem: { type: "raster-dem", tiles: ["https://dem.tbrun.dev/{z}/{x}/{y}.png"], encoding: "terrarium", tileSize: 256, maxzoom: 13 },
+      expo: { type: "raster", tiles: ["https://cepes.tbrun.dev/expo/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
+      foret: { type: "vector", url: "pmtiles://foret.pmtiles" },
+      sentiers: { type: "vector", url: "pmtiles://sentiers.pmtiles" },
+      parkings: { type: "geojson", data: "parkings.geojson" },
+      prime: { type: "raster", tiles: ["https://cepes.tbrun.dev/prime/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
+      gbif: { type: "geojson", data: "gbif.geojson" }
+    },
+    layers: [
+      { id: "ortho", type: "raster", source: "ortho" },
+      { id: "hill", type: "hillshade", source: "dem",
+        paint: { "hillshade-exaggeration": 0.5, "hillshade-shadow-color": "#1a0f06", "hillshade-highlight-color": "#fff2d6" } },
+      { id: "foret", type: "fill", source: "foret", "source-layer": "foret",
+        paint: { "fill-color": ["match", ["get","score"], 3, "#2f8f4e", 2, "#7cae52", 1, "#cfa24a", "#888"], "fill-opacity": 0.42 } },
+      { id: "foret-line", type: "line", source: "foret", "source-layer": "foret",
+        paint: { "line-color": ["match", ["get","score"], 3, "#49c173", 2, "#a5d66a", "#cfa24a"], "line-width": 0.5, "line-opacity": 0.4 } },
+      { id: "expo", type: "raster", source: "expo", layout: { visibility: "none" }, paint: { "raster-opacity": 0.7 } },
+      { id: "prime", type: "raster", source: "prime", paint: { "raster-opacity": 0.85 } },
+      { id: "gbif-glow", type: "circle", source: "gbif", layout: { visibility: "none" },
+        paint: { "circle-radius": 9, "circle-color": "#ff5a3c", "circle-blur": 1, "circle-opacity": 0.5 } },
+      { id: "gbif-pt", type: "circle", source: "gbif", layout: { visibility: "none" },
+        paint: { "circle-radius": 4, "circle-color": "#ffe08a", "circle-stroke-color": "#b9351a", "circle-stroke-width": 1.5 } },
+      { id: "sentiers", type: "line", source: "sentiers", "source-layer": "sentiers", layout: { visibility: "none", "line-cap": "round" },
+        paint: { "line-color": "#f6e3a8", "line-width": ["interpolate",["linear"],["zoom"],11,0.4,14,1.6], "line-opacity": 0.85, "line-dasharray": [2,1.5] } },
+      { id: "parkings", type: "circle", source: "parkings", layout: { visibility: "none" },
+        paint: { "circle-radius": 5, "circle-color": "#b9733e", "circle-stroke-color": "#fff", "circle-stroke-width": 1.4 } },
+      { id: "parkings-p", type: "symbol", source: "parkings", layout: { visibility: "none", "text-field": "P", "text-size": 11, "text-font": ["Open Sans Bold"], "text-offset": [0,0.05] }, paint: { "text-color": "#fff" } }
+    ],
+    sky: { "sky-color": "#7fb0d8", "horizon-color": "#e7d3a8", "fog-color": "#efe3c9", "sky-horizon-blend": 0.5, "horizon-fog-blend": 0.6, "fog-ground-blend": 0.18 }
+  },
+  center: [-1.49, 43.33], zoom: 11.3, pitch: 62, bearing: -18
+});
+map.addControl(new maplibregl.NavigationControl({visualizePitch:true}), "bottom-right");
+map.addControl(new maplibregl.GeolocateControl({positionOptions:{enableHighAccuracy:true},trackUserLocation:true}), "bottom-right");
+map.addControl(new maplibregl.ScaleControl({unit:"metric"}));
+map.on("load", () => map.setTerrain({ source: "dem", exaggeration: 1.45 }));
+const LABEL={3:"Top — tête de nègre / cèpe de Bordeaux",2:"Favorable — cèpe des pins",1:"Possible"};
+map.on("click","foret",(e)=>{const p=e.features[0].properties;
+  new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<b>${LABEL[p.score]||"—"}</b><br>${p.essence||""}<br><span style="opacity:.6">${p.tfv||""}</span>`).addTo(map);});
+map.on("mouseenter","foret",()=>map.getCanvas().style.cursor="pointer");
+map.on("mouseleave","foret",()=>map.getCanvas().style.cursor="");
+const vis=(ids,on)=>ids.forEach(id=>map.setLayoutProperty(id,"visibility",on?"visible":"none"));
+document.getElementById("t-foret").onchange=e=>vis(["foret","foret-line"],e.target.checked);
+document.getElementById("t-prime").onchange=e=>vis(["prime"],e.target.checked);
+document.getElementById("t-gbif").onchange =e=>vis(["gbif-glow","gbif-pt"],e.target.checked);
+document.getElementById("t-expo").onchange =e=>vis(["expo"],e.target.checked);
+document.getElementById("t-sent").onchange =e=>vis(["sentiers"],e.target.checked);
+document.getElementById("t-park").onchange =e=>vis(["parkings","parkings-p"],e.target.checked);
+map.on("click","gbif-pt",(e)=>{const p=e.features[0].properties;
+  new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<b>${p.species||"Boletus"}</b><br><span style="opacity:.65">trouvé ici${p.year?" · "+p.year:""}</span>`).addTo(map);});
+fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
+  const col = p.score>=85?"#49c173": p.score>=60?"#9acd32": p.score>=35?"#e3ab4d":"#8fb3cf";
+  const dot = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${col};box-shadow:0 0 12px ${col};margin-right:8px;vertical-align:middle"></span>`;
+  const bits=[]; if(p.window) bits.push(p.window);
+  bits.push(`pluie 14 j : <b>${p.rain14} mm</b>`);
+  if(p.next_rain) bits.push(`prochaine pluie : ${p.next_rain.date.slice(8,10)}/${p.next_rain.date.slice(5,7)} (${p.next_rain.mm} mm)`);
+  const el=document.getElementById("push");
+  el.innerHTML=`<div class="t">🍄 Radar de poussée</div><div class="v">${dot}${p.verdict}</div><div class="d">${bits.join(" · ")}</div>`;
+  el.style.display="block"; el.style.borderColor=col+"55";
+}).catch(()=>{});
+</script>
+</body>
+</html>

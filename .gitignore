@@ -1,0 +1,14 @@
+# données générées (volumineuses) — reconstruites par les scripts build_*.py
+*.geojson
+*.pmtiles
+*.tif
+*.vrt
+work/
+expo/
+prime/
+# sorties / états
+*.log
+push_state.json
+shot*.png
+# garder les visuels de doc
+!docs/*.png
