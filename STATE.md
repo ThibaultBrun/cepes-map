@@ -43,3 +43,4 @@
 - 2026-10-18 03:09 — Passe 11 : ✅ checklist conditions dans le radar (humidité 14j / température demain / saison / fenêtre future) avec ✅/⚠️/❌ depuis push.json.
 - 2026-10-18 03:32 — Passe 12 : 📲 PWA installable — manifest.json (name/icons/shortcuts), SW cache-first, icône champignon SVG champêtre, bouton "Installer" dans le hero (visible si beforeinstallprompt), apple-mobile-web-app meta tags.
 - 2026-10-18 03:49 — Passe 13 : 🍄 Espèces GBIF colorées — 4 couleurs data-driven (edulis or/aereus brun/pinophilus rouille/reticulatus ocre), glow matching, légende 4 espèces, popup enrichi avec nom FR + latin + indicateur couleur.
+- 2026-10-18 04:29 — Passe 14 : 🎴 Fiches espèces GBIF enrichies — SVG champignon par espèce (forme/couleur chapeau distincts), description habitat + caractéristiques, popup restructurée en fiche ; + 💡 conseil de prospection dans le radar push (4 niveaux, conseils concrets).
