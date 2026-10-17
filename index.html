@@ -122,16 +122,21 @@
   #saison-badge{display:none;font-size:10px;letter-spacing:.06em;padding:2px 9px;border-radius:7px;
     background:rgba(185,115,62,.2);border:1px solid rgba(185,115,62,.5);color:var(--gold);
     margin-bottom:8px;width:fit-content}
-  #hero-toggle{display:none;position:absolute;top:14px;right:14px;z-index:10;
-    background:var(--wood);border:1px solid var(--line);border-radius:12px;
-    width:38px;height:38px;cursor:pointer;font-size:18px;
-    align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+  #hero-toggle{display:flex;position:fixed;top:14px;left:14px;z-index:11;
+    background:var(--wood);border:1px solid var(--line);border-radius:50%;
+    width:50px;height:50px;cursor:pointer;font-size:22px;color:var(--gold);
+    align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,0,0,.45);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+  #hero-toggle.hide{display:none}
+  .hero{transition:transform .28s ease, opacity .28s ease; max-height:88vh; overflow-y:auto; top:14px; left:72px}
+  .hero.collapsed{transform:translateX(-130%);opacity:0;pointer-events:none}
+  #hero-close{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;
+    background:rgba(244,234,214,.1);border:1px solid var(--line);color:var(--cream);
+    font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2}
   @media(max-width:560px){
-    .hero{max-width:calc(100vw - 28px);transition:.25s}
-    .hero.collapsed{max-height:54px;overflow:hidden}
+    .hero{max-width:calc(100vw - 86px);top:14px;left:70px}
     #push{max-width:calc(100vw - 28px);bottom:58px}
     #coins{display:none}
-    #hero-toggle{display:flex}
     #loc-btn{bottom:14px;font-size:12px;padding:8px 14px}
   }
   #install-btn{display:none;width:100%;margin-top:8px;padding:7px 12px;border:1px solid var(--line);
@@ -192,6 +197,7 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
 <button id="hero-toggle" title="Afficher/masquer les options">☰</button>
 <button id="loc-btn" title="Centrer sur ma position">📍 Où je suis</button>
 <div class="card hero">
+  <button id="hero-close" title="Fermer">✕</button>
   <div id="saison-badge"></div>
   <div class="kick">Carte de prospection</div>
   <h1>Cèpes</h1>
@@ -318,7 +324,12 @@ const map = new maplibregl.Map({
 map.addControl(new maplibregl.NavigationControl({visualizePitch:true}), "bottom-right");
 map.addControl(new maplibregl.GeolocateControl({positionOptions:{enableHighAccuracy:true},trackUserLocation:true}), "bottom-right");
 map.addControl(new maplibregl.ScaleControl({unit:"metric"}));
-map.on("load", () => { map.setTerrain({ source: "dem", exaggeration: 1.45 }); setTimeout(updateCoins, 900); });
+map.on("load", () => {
+  map.setTerrain({ source: "dem", exaggeration: 1.45 });
+  map.setPaintProperty("gbif-pt","circle-opacity",["step",["coalesce",["to-number",["get","year"]],2000],0.35,2005,0.55,2015,0.8,2020,1.0]);
+  map.setPaintProperty("gbif-glow","circle-opacity",["step",["coalesce",["to-number",["get","year"]],2000],0.18,2010,0.35,2020,0.55]);
+  setTimeout(updateCoins, 900);
+});
 const LABEL={3:"Top — tête de nègre / cèpe de Bordeaux",2:"Favorable — cèpe des pins",1:"Possible"};
 const SCORE_ICO={3:"🥇",2:"🌲",1:"🌿"};
 const tip=document.getElementById("map-tip");
@@ -394,11 +405,7 @@ document.querySelectorAll(".sp-chip").forEach(chip=>{
     applyGbifFilter();
   });
 });
-// Freshness opacity: recent obs = full, old = dimmed
-map.setPaintProperty("gbif-pt","circle-opacity",
-  ["step",["coalesce",["to-number",["get","year"]],2000],0.35,2005,0.55,2015,0.8,2020,1.0]);
-map.setPaintProperty("gbif-glow","circle-opacity",
-  ["step",["coalesce",["to-number",["get","year"]],2000],0.18,2010,0.35,2020,0.55]);
+// Freshness opacity appliquée dans le handler "load" (sinon "Style is not done loading")
 // ─────────────────────────────────────────────────────────────────────
 map.on("click","gbif-pt",(e)=>{const p=e.features[0].properties;
   const col=GBIF_COL[p.species]||"#f5c842";
@@ -434,6 +441,7 @@ function bboxArea(geom) {
   return (Math.max(...xs)-Math.min(...xs))*(Math.max(...ys)-Math.min(...ys));
 }
 function updateCoins() {
+  if(!map.isStyleLoaded()) return;
   const list = document.getElementById("coins-list");
   if(!_coinsOpen) return;
   const feats = map.queryRenderedFeatures({layers:["foret","foret-best"]}).filter(f=>f.properties&&f.properties.score===3);
@@ -537,10 +545,13 @@ locBtn.onclick = () => {
 // Toggle hero panel (mobile)
 const heroToggle = document.getElementById("hero-toggle");
 const heroCard = document.querySelector(".card.hero");
-heroToggle.onclick = () => {
-  const collapsed = heroCard.classList.toggle("collapsed");
-  heroToggle.textContent = collapsed ? "⊕" : "☰";
-};
+const heroClose = document.getElementById("hero-close");
+const openHero = (o) => heroCard.classList.toggle("collapsed", !o);
+heroToggle.onclick = () => openHero(heroCard.classList.contains("collapsed"));
+heroClose.onclick = () => openHero(false);
+// fermé par défaut sur mobile (carte dégagée façon Google Maps)
+if (window.innerWidth < 760) openHero(false);
+if (new URLSearchParams(location.search).has("skipintro")) { const i=document.getElementById("intro"); if(i) i.remove(); }
 // Partage de spot : popup avec lien permalien sur click long / double-click
 let _shareTimeout;
 map.getCanvas().addEventListener("contextmenu", (e) => {
