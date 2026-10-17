@@ -76,6 +76,21 @@
     box-shadow:0 4px 18px rgba(0,0,0,.45);transition:.2s;white-space:nowrap}
   #loc-btn:hover{background:rgba(40,28,16,.95);border-color:var(--gold)}
   #loc-btn.locating{border-color:var(--gold);color:var(--gold)}
+  #geocoder-wrap{position:relative;margin-bottom:10px}
+  #geocoder{width:100%;background:rgba(244,234,214,.08);border:1px solid var(--line);border-radius:10px;
+    color:var(--cream);font-size:12px;padding:7px 10px;outline:none;font-family:"Inter",sans-serif;transition:.2s}
+  #geocoder::placeholder{color:rgba(244,234,214,.35)}
+  #geocoder:focus{border-color:rgba(224,168,74,.5);background:rgba(244,234,214,.12)}
+  #geo-results{display:none;position:absolute;top:100%;left:0;right:0;z-index:20;
+    background:#241a10;border:1px solid var(--line);border-radius:10px;margin-top:3px;
+    overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.6)}
+  .geo-item{padding:8px 10px;font-size:12px;cursor:pointer;border-bottom:1px solid rgba(224,168,74,.12);
+    transition:.15s;line-height:1.35}
+  .geo-item:last-child{border-bottom:none}
+  .geo-item:hover{background:rgba(244,234,214,.09)}
+  #saison-badge{display:none;font-size:10px;letter-spacing:.06em;padding:2px 9px;border-radius:7px;
+    background:rgba(185,115,62,.2);border:1px solid rgba(185,115,62,.5);color:var(--gold);
+    margin-bottom:8px;width:fit-content}
   #hero-toggle{display:none;position:absolute;top:14px;right:14px;z-index:10;
     background:var(--wood);border:1px solid var(--line);border-radius:12px;
     width:38px;height:38px;cursor:pointer;font-size:18px;
@@ -102,9 +117,14 @@
 <button id="hero-toggle" title="Afficher/masquer les options">☰</button>
 <button id="loc-btn" title="Centrer sur ma position">📍 Où je suis</button>
 <div class="card hero">
+  <div id="saison-badge"></div>
   <div class="kick">Carte de prospection</div>
   <h1>Cèpes</h1>
   <div class="sub">Pays Basque · Landes — 50 km autour de Bayonne</div>
+  <div id="geocoder-wrap">
+    <input id="geocoder" type="text" placeholder="🔍 Chercher une commune…" autocomplete="off">
+    <div id="geo-results"></div>
+  </div>
   <label class="row"><input type="checkbox" id="t-foret" checked> 🌳 Potentiel forêt</label>
   <label class="row"><input type="checkbox" id="t-prime" checked> ✨ Spots prime (sud ∩ forêt)</label>
   <label class="row"><input type="checkbox" id="t-best" checked> 🥇 Meilleurs coins (cèpe de Bordeaux)</label>
@@ -324,6 +344,47 @@ map.getCanvas().addEventListener("contextmenu", (e) => {
   new maplibregl.Popup({maxWidth:"260px"}).setLngLat(lngLat).setHTML(html).addTo(map);
 });
 
+// Badge saison dynamique
+(()=>{
+  const m = new Date().getMonth()+1;
+  const badge = document.getElementById("saison-badge");
+  if(m>=9&&m<=11){
+    badge.textContent = m===9?"🍂 Début de saison · Sep–Oct": m===11?"🍂 Fin de saison · Nov":"🍄 Pleine saison · Oct–Nov";
+    badge.style.display="block";
+  }
+})();
+// Geocoder IGN Géoplateforme
+(()=>{
+  const inp = document.getElementById("geocoder");
+  const res = document.getElementById("geo-results");
+  let timer;
+  inp.addEventListener("input", ()=>{
+    clearTimeout(timer);
+    const q = inp.value.trim();
+    if(q.length < 3){ res.style.display="none"; return; }
+    timer = setTimeout(()=>{
+      fetch(`https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(q)}&limit=6&returntruegeometry=false`)
+        .then(r=>r.json()).then(data=>{
+          if(!data.features||!data.features.length){ res.style.display="none"; return; }
+          res.innerHTML = data.features.map(f=>{
+            const lbl = (f.properties.label||f.properties.name||"").replace(/</g,"&lt;");
+            const [lng,lat] = f.geometry.coordinates;
+            return `<div class="geo-item" data-lng="${lng}" data-lat="${lat}">${lbl}</div>`;
+          }).join("");
+          res.querySelectorAll(".geo-item").forEach(el=>{
+            el.onclick=()=>{
+              map.flyTo({center:[+el.dataset.lng,+el.dataset.lat],zoom:13,duration:1000,pitch:55});
+              inp.value=el.textContent; res.style.display="none";
+              setTimeout(updateCoins,1200);
+            };
+          });
+          res.style.display="block";
+        }).catch(()=>{ res.style.display="none"; });
+    },320);
+  });
+  inp.addEventListener("keydown", e=>{ if(e.key==="Escape"){ res.style.display="none"; inp.blur(); } });
+  document.addEventListener("click", e=>{ if(!inp.contains(e.target)&&!res.contains(e.target)) res.style.display="none"; });
+})();
 fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   const col = p.score>=85?"#49c173": p.score>=60?"#9acd32": p.score>=35?"#e3ab4d":"#8fb3cf";
   const dot = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${col};box-shadow:0 0 12px ${col};margin-right:8px;vertical-align:middle"></span>`;
