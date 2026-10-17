@@ -212,6 +212,7 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   <label class="row"><input type="checkbox" id="t-gbif"> 🍄 Trouvailles réelles (GBIF)</label>
   <label class="row"><input type="checkbox" id="t-ess"> 🌲 Essences 10m (Copernicus)</label>
   <label class="row"><input type="checkbox" id="t-expo"> ☀️ Versants sud (large)</label>
+  <label class="row"><input type="checkbox" id="t-strava"> 🥾 Fréquentation (Strava rando)</label>
   <label class="row"><input type="checkbox" id="t-sent"> 🥾 Sentiers &amp; pistes</label>
   <label class="row"><input type="checkbox" id="t-park"> 🅿️ Parkings</label>
   <div class="sep"></div>
@@ -273,7 +274,8 @@ const map = new maplibregl.Map({
       parkings: { type: "geojson", data: "parkings.geojson", cluster: true, clusterMaxZoom: 13, clusterRadius: 40 },
       essence: { type: "raster", tiles: ["https://cepes.tbrun.dev/essence/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
       prime: { type: "raster", tiles: ["https://cepes.tbrun.dev/prime/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
-      gbif: { type: "geojson", data: "gbif.geojson" }
+      gbif: { type: "geojson", data: "gbif.geojson" },
+      strava: { type: "raster", tiles: ["https://cepes.tbrun.dev/strava/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 }
     },
     layers: [
       { id: "ortho", type: "raster", source: "ortho" },
@@ -290,6 +292,7 @@ const map = new maplibregl.Map({
         filter: ["==", ["get","score"], 3],
         paint: { "line-color": "#f5c842", "line-width": 1.4, "line-opacity": 0.85 } },
       { id: "expo", type: "raster", source: "expo", layout: { visibility: "none" }, paint: { "raster-opacity": 0.7 } },
+      { id: "strava", type: "raster", source: "strava", layout: { visibility: "none" }, paint: { "raster-opacity": 0.8 } },
       { id: "essence", type: "raster", source: "essence", layout: { visibility: "none" }, paint: { "raster-opacity": 0.72 } },
       { id: "prime", type: "raster", source: "prime", paint: { "raster-opacity": 0.85 } },
       { id: "gbif-heat", type: "heatmap", source: "gbif", layout: { visibility: "none" },
@@ -353,6 +356,7 @@ document.getElementById("t-best").onchange=e=>{vis(["foret-best","foret-best-lin
 document.getElementById("t-gbif").onchange =e=>vis(["gbif-heat","gbif-glow","gbif-pt"],e.target.checked);
 document.getElementById("t-ess").onchange  =e=>{vis(["essence"],e.target.checked);document.getElementById("leg-ess").style.display=e.target.checked?"":"none";};
 document.getElementById("t-expo").onchange =e=>vis(["expo"],e.target.checked);
+document.getElementById("t-strava").onchange=e=>vis(["strava"],e.target.checked);
 document.getElementById("t-sent").onchange =e=>vis(["sentiers"],e.target.checked);
 document.getElementById("t-park").onchange =e=>vis(["parkings-cluster","parkings-cluster-count","parkings","parkings-p"],e.target.checked);
 map.on("click","parkings-cluster",(e)=>{
@@ -725,6 +729,7 @@ aboutOv.innerHTML = `<div id="about-box">
     <li><b>Sentiers &amp; parkings</b> — © contributeurs OpenStreetMap (ODbL)</li>
     <li><b>Observations de cèpes</b> — GBIF (occurrences publiques)</li>
     <li><b>Météo</b> — Open-Meteo (CC-BY)</li>
+    <li><b>Fréquentation</b> — heatmap pédestre Strava (usage perso)</li>
     <li>Rendu : MapLibre GL · PMTiles · GDAL · tippecanoe</li>
   </ul>
 

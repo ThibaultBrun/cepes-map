@@ -12,3 +12,6 @@ push_state.json
 shot*.png
 # garder les visuels de doc
 !docs/*.png
+strava/
+essence/
+cards/
