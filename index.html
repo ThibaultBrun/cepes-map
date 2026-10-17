@@ -48,6 +48,11 @@
   .spark-label{display:flex;justify-content:space-between;font-size:9px;opacity:.5;margin-top:2px}
   .fut-idx{margin-top:7px;font-size:11px;display:flex;align-items:center;gap:6px}
   .fut-dot{width:8px;height:8px;border-radius:50%;flex:none}
+  .chk-list{margin-top:10px;padding-top:8px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+  .chk-row{display:flex;align-items:baseline;gap:6px;font-size:11px;line-height:1.4}
+  .chk-ico{flex:none;font-size:12px;line-height:1}
+  .chk-lbl{color:rgba(244,234,214,.65)}
+  .chk-val{font-weight:600;color:var(--cream)}
   .maplibregl-popup-content{background:#241a10;color:var(--cream);border-radius:12px;font-size:12px;padding:10px 12px;border:1px solid var(--line)}
   .maplibregl-popup-content b{font-size:13px;font-family:"Fraunces";font-style:italic}
   .maplibregl-popup-tip{border-top-color:#241a10!important;border-bottom-color:#241a10!important}
@@ -410,8 +415,26 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
     <div class="spark-label"><span>${lbl0}</span><span>${lbl1}</span></div>
     <div class="fut-idx"><div class="fut-dot" style="background:${futCol};box-shadow:0 0 6px ${futCol}"></div><span style="color:${futCol}">${futTxt}</span></div>`;
   }
+  // Checklist critères
+  const m = new Date().getMonth()+1;
+  const saison = (m>=9&&m<=11)?{ok:true,txt:"Pleine saison · Oct–Nov"}:(m===8||m===12)?{ok:null,txt:"Saison marginale"}:{ok:false,txt:"Hors saison"};
+  const pluie = p.rain14>=25?{ok:true,txt:`${p.rain14} mm / 14 j`}:p.rain14>=12?{ok:null,txt:`${p.rain14} mm / 14 j — léger`}:{ok:false,txt:`${p.rain14} mm / 14 j — insuffisant`};
+  const tmax = p.forecast&&p.forecast.length?p.forecast[0].tmax:null;
+  const temp = tmax===null?null:tmax>=10&&tmax<=22?{ok:true,txt:`${tmax}°C demain`}:tmax>22?{ok:null,txt:`${tmax}°C — chaud`}:{ok:false,txt:`${tmax}°C — trop froid`};
+  const futur = p.score_future>=70?{ok:true,txt:"Pluie prévue, fenêtre possible"}:p.score_future>=40?{ok:null,txt:"Quelques mm prévus"}:{ok:false,txt:"Pas de pluie prévue"};
+  function chkRow(ico, label, item){
+    if(!item) return "";
+    const icon = item.ok===true?"✅":item.ok===null?"⚠️":"❌";
+    return `<div class="chk-row"><span class="chk-ico">${icon}</span><span class="chk-lbl">${label}</span><span class="chk-val">${item.txt}</span></div>`;
+  }
+  const chkHtml = `<div class="chk-list">
+    ${chkRow("💧","Humidité :",pluie)}
+    ${temp?chkRow("🌡️","Température :",temp):""}
+    ${chkRow("📅","Saison :",saison)}
+    ${chkRow("🔮","Fenêtre future :",futur)}
+  </div>`;
   const el=document.getElementById("push");
-  el.innerHTML=`<div class="t">🍄 Radar de poussée</div><div class="v">${dot}${p.verdict}</div><div class="d">${bits.join(" · ")}</div>${sparkHtml}`;
+  el.innerHTML=`<div class="t">🍄 Radar de poussée</div><div class="v">${dot}${p.verdict}</div><div class="d">${bits.join(" · ")}</div>${sparkHtml}${chkHtml}`;
   el.style.display="block"; el.style.borderColor=col+"55";
 }).catch(()=>{});
 </script>
