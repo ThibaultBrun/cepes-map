@@ -109,6 +109,9 @@
     padding:9px 18px;cursor:pointer;display:flex;align-items:center;gap:7px;
     box-shadow:0 4px 18px rgba(0,0,0,.45);transition:.2s;white-space:nowrap}
   #loc-btn:hover{background:rgba(40,28,16,.95);border-color:var(--gold)}
+  .me-dot{width:18px;height:18px;border-radius:50%;background:#2e9bff;border:3px solid #fff;box-shadow:0 0 0 2px rgba(46,155,255,.5),0 2px 8px rgba(0,0,0,.5)}
+  .me-dot::before{content:"";position:absolute;inset:-9px;border-radius:50%;background:rgba(46,155,255,.35);animation:mepulse 2s ease-out infinite}
+  @keyframes mepulse{0%{transform:scale(.6);opacity:.7}100%{transform:scale(2.2);opacity:0}}
   #loc-btn.locating{border-color:var(--gold);color:var(--gold)}
   #geocoder-wrap{position:relative;margin-bottom:10px}
   #geocoder{width:100%;background:rgba(244,234,214,.08);border:1px solid var(--line);border-radius:10px;
@@ -138,9 +141,10 @@
     font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2}
   @media(max-width:560px){
     .hero{max-width:calc(100vw - 86px);top:14px;left:70px}
-    #push{max-width:calc(100vw - 28px);bottom:58px}
+    #push{max-width:calc(100vw - 28px);bottom:56px}
     #coins{display:none}
     #loc-btn{bottom:14px;font-size:12px;padding:8px 14px}
+    #zone-stats{bottom:118px;max-width:calc(100vw - 28px)}
   }
   #install-btn{display:none;width:100%;margin-top:8px;padding:7px 12px;border:1px solid var(--line);
     border-radius:10px;background:rgba(227,171,77,.12);color:var(--gold);font-size:11.5px;
@@ -209,6 +213,7 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
     <input id="geocoder" type="text" placeholder="🔍 Chercher une commune…" autocomplete="off">
     <div id="geo-results"></div>
   </div>
+  <label class="row"><input type="checkbox" id="t-plan"> 🗺️ Fond plan (carto)</label>
   <label class="row"><input type="checkbox" id="t-foret" checked> 🌳 Potentiel forêt</label>
   <label class="row"><input type="checkbox" id="t-prime" checked> ✨ Spots prime (sud ∩ forêt)</label>
   <label class="row"><input type="checkbox" id="t-best" checked> 🥇 Meilleurs coins (cèpe de Bordeaux)</label>
@@ -219,9 +224,9 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   <label class="row"><input type="checkbox" id="t-sent"> 🥾 Sentiers &amp; pistes</label>
   <label class="row"><input type="checkbox" id="t-park"> 🅿️ Parkings</label>
   <div class="sep"></div>
-  <div class="leg"><span class="sw" style="background:#2f8f4e"></span> Chênes · châtaignier · hêtre</div>
-  <div class="leg"><span class="sw" style="background:#7cae52"></span> Feuillus · pin maritime</div>
-  <div class="leg"><span class="sw" style="background:#cfa24a"></span> Autres conifères</div>
+  <div class="leg"><span class="sw" style="background:#5c2e0c"></span> Chênes · châtaignier · hêtre <span style="opacity:.5;font-size:10px">(top)</span></div>
+  <div class="leg"><span class="sw" style="background:#c07a3a"></span> Feuillus · pin maritime</div>
+  <div class="leg"><span class="sw" style="background:#f2dcc0"></span> Autres conifères <span style="opacity:.5;font-size:10px">(possible)</span></div>
   <div id="leg-ess" style="display:none">
     <div class="leg"><span class="sw" style="background:#d4a017"></span> 🌲 Chêne (Quercus) — top cèpes</div>
     <div class="leg"><span class="sw" style="background:#a0522d"></span> 🍂 Hêtre (Fagus) — top cèpes</div>
@@ -233,7 +238,7 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   <div class="leg" style="flex-direction:column;align-items:flex-start;gap:2px">
     <span style="font-size:12px;font-weight:600">🍄 Trouvailles réelles (GBIF)</span>
     <div style="display:flex;align-items:center;gap:6px;margin-top:3px;margin-bottom:2px">
-      <div style="width:80px;height:7px;border-radius:4px;background:linear-gradient(90deg,rgba(185,115,62,0.15),#e0a84a,#b45014,#5a0a00);border:1px solid rgba(255,255,255,0.12)"></div>
+      <div style="width:80px;height:7px;border-radius:4px;background:linear-gradient(90deg,#f2dcc0,#c88c50,#8c4a1e,#4a260c);border:1px solid rgba(255,255,255,0.12)"></div>
       <span style="font-size:10px;opacity:.6">densité</span>
     </div>
     <div id="sp-filters" style="display:flex;gap:5px;flex-wrap:wrap;margin-top:3px">
@@ -263,6 +268,7 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
 const proto = new pmtiles.Protocol();
 maplibregl.addProtocol("pmtiles", proto.tile);
 const IGN = "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/jpeg&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}";
+const PLAN = "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/png&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}";
 const map = new maplibregl.Map({
   container: "map", maxPitch: 80, hash: true,
   style: {
@@ -270,6 +276,7 @@ const map = new maplibregl.Map({
     glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
     sources: {
       ortho: { type: "raster", tiles: [IGN], tileSize: 256, maxzoom: 19, attribution: "© IGN/Géoplateforme · Copernicus · OSM" },
+      plan: { type: "raster", tiles: [PLAN], tileSize: 256, maxzoom: 19, attribution: "© IGN/Géoplateforme" },
       dem: { type: "raster-dem", tiles: ["https://dem.tbrun.dev/{z}/{x}/{y}.png"], encoding: "terrarium", tileSize: 256, maxzoom: 13 },
       expo: { type: "raster", tiles: ["https://cepes.tbrun.dev/expo/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
       foret: { type: "vector", url: "pmtiles://foret.pmtiles" },
@@ -282,12 +289,13 @@ const map = new maplibregl.Map({
     },
     layers: [
       { id: "ortho", type: "raster", source: "ortho" },
+      { id: "plan", type: "raster", source: "plan", layout: { visibility: "none" } },
       { id: "hill", type: "hillshade", source: "dem",
         paint: { "hillshade-exaggeration": 0.5, "hillshade-shadow-color": "#1a0f06", "hillshade-highlight-color": "#fff2d6" } },
       { id: "foret", type: "fill", source: "foret", "source-layer": "foret",
-        paint: { "fill-color": ["match", ["get","score"], 3, "#2f8f4e", 2, "#7cae52", 1, "#cfa24a", "#888"], "fill-opacity": 0.42 } },
+        paint: { "fill-color": ["match", ["get","score"], 3, "#5c2e0c", 2, "#c07a3a", 1, "#f2dcc0", "#999"], "fill-opacity": 0.55 } },
       { id: "foret-line", type: "line", source: "foret", "source-layer": "foret",
-        paint: { "line-color": ["match", ["get","score"], 3, "#49c173", 2, "#a5d66a", "#cfa24a"], "line-width": 0.5, "line-opacity": 0.4 } },
+        paint: { "line-color": ["match", ["get","score"], 3, "#3a1c06", 2, "#8a5222", 1, "#cfae84"], "line-width": 0.5, "line-opacity": 0.45 } },
       { id: "foret-best", type: "fill", source: "foret", "source-layer": "foret",
         filter: ["==", ["get","score"], 3],
         paint: { "fill-color": "#f5c842", "fill-opacity": 0.22 } },
@@ -306,11 +314,10 @@ const map = new maplibregl.Map({
           "heatmap-opacity": ["interpolate",["linear"],["zoom"],11,0.82,13.5,0.0],
           "heatmap-color": ["interpolate",["linear"],["heatmap-density"],
             0,"rgba(0,0,0,0)",
-            0.15,"rgba(185,115,62,0.08)",
-            0.35,"rgba(224,168,74,0.55)",
-            0.6,"rgba(180,80,20,0.78)",
-            0.85,"rgba(120,30,0,0.88)",
-            1,"rgba(90,10,0,0.95)"]
+            0.15,"rgba(242,220,192,0.35)",
+            0.4,"rgba(200,140,80,0.62)",
+            0.7,"rgba(140,74,30,0.82)",
+            1,"rgba(74,38,12,0.92)"]
         }},
       { id: "gbif-glow", type: "circle", source: "gbif", layout: { visibility: "none" },
         paint: { "circle-radius": 10, "circle-color": ["match",["get","species"],"Boletus edulis","#f5c842","Boletus aereus","#7a3500","Boletus pinophilus","#ff5a1a","Boletus reticulatus","#d4a558","#ff5a3c"], "circle-blur": 1.1, "circle-opacity": 0.55 } },
@@ -330,7 +337,6 @@ const map = new maplibregl.Map({
   center: [-1.49, 43.33], zoom: 11.3, pitch: 62, bearing: -18
 });
 map.addControl(new maplibregl.NavigationControl({visualizePitch:true}), "bottom-right");
-map.addControl(new maplibregl.GeolocateControl({positionOptions:{enableHighAccuracy:true},trackUserLocation:true}), "bottom-right");
 map.addControl(new maplibregl.ScaleControl({unit:"metric"}));
 map.on("load", () => {
   map.setTerrain({ source: "dem", exaggeration: 1.45 });
@@ -353,6 +359,7 @@ map.on("mousemove","foret",(e)=>{
 });
 map.on("mouseleave","foret",()=>{tip.style.display="none";map.getCanvas().style.cursor="";});
 const vis=(ids,on)=>ids.forEach(id=>map.setLayoutProperty(id,"visibility",on?"visible":"none"));
+document.getElementById("t-plan").onchange=e=>{vis(["plan"],e.target.checked);vis(["ortho"],!e.target.checked);};
 document.getElementById("t-foret").onchange=e=>vis(["foret","foret-line"],e.target.checked);
 document.getElementById("t-prime").onchange=e=>vis(["prime"],e.target.checked);
 document.getElementById("t-best").onchange=e=>{vis(["foret-best","foret-best-line"],e.target.checked);document.getElementById("coins").style.display=e.target.checked?"flex":"none";};
@@ -538,11 +545,21 @@ gpxBtn.onclick = () => {
 };
 // Bouton "centrer sur moi"
 const locBtn = document.getElementById("loc-btn");
+let meMarker = null;
 locBtn.onclick = () => {
   locBtn.classList.add("locating");
   locBtn.textContent = "⏳ Localisation…";
   navigator.geolocation.getCurrentPosition(pos => {
-    map.flyTo({center:[pos.coords.longitude, pos.coords.latitude], zoom:14, pitch:55, duration:1200});
+    const lngLat = [pos.coords.longitude, pos.coords.latitude];
+    if(!meMarker){
+      const el = document.createElement("div");
+      el.className = "me-dot";
+      el.style.position = "relative";
+      meMarker = new maplibregl.Marker({element:el}).setLngLat(lngLat).addTo(map);
+    } else {
+      meMarker.setLngLat(lngLat);
+    }
+    map.flyTo({center:lngLat, zoom:14, pitch:55, duration:1200});
     locBtn.classList.remove("locating");
     locBtn.innerHTML = "📍 Où je suis";
   }, () => {
@@ -609,7 +626,23 @@ map.getCanvas().addEventListener("contextmenu", (e) => {
         }).catch(()=>{ res.style.display="none"; });
     },320);
   });
-  inp.addEventListener("keydown", e=>{ if(e.key==="Escape"){ res.style.display="none"; inp.blur(); } });
+  inp.addEventListener("keydown", e=>{
+    if(e.key==="Escape"){ res.style.display="none"; inp.blur(); return; }
+    if(e.key==="Enter"){
+      e.preventDefault();
+      const first = res.querySelector(".geo-item");
+      if(first){ first.click(); return; }
+      const q = inp.value.trim(); if(q.length<2) return;
+      fetch(`https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(q)}&limit=1&returntruegeometry=false`)
+        .then(r=>r.json()).then(data=>{
+          const f = data.features && data.features[0]; if(!f) return;
+          const [lng,lat] = f.geometry.coordinates;
+          map.flyTo({center:[lng,lat],zoom:13,duration:1000,pitch:55});
+          inp.value = f.properties.label || f.properties.name || q; res.style.display="none"; inp.blur();
+          setTimeout(updateCoins,1200);
+        }).catch(()=>{});
+    }
+  });
   document.addEventListener("click", e=>{ if(!inp.contains(e.target)&&!res.contains(e.target)) res.style.display="none"; });
 })();
 // PWA: service worker + install prompt
@@ -713,7 +746,7 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   el.innerHTML=`<div class="push-head"><div style="flex:1;min-width:0"><div class="t">🍄 Radar de poussée</div><div class="v">${dot}${p.verdict}</div></div><span class="push-chev">▾</span></div><div class="push-body"><div class="d">${bits.join(" · ")}</div>${sparkHtml}${chkHtml}${conseil}</div>`;
   el.style.display="block"; el.style.borderColor=col+"55";
   const head=el.querySelector(".push-head");
-  const setMini=(m)=>{el.classList.toggle("mini",m);const cv=el.querySelector(".push-chev");if(cv)cv.textContent=m?"▸":"▾";};
+  const setMini=(m)=>{el.classList.toggle("mini",m);const cv=el.querySelector(".push-chev");if(cv)cv.textContent=m?"▸":"▾";const zs=document.getElementById("zone-stats");if(zs&&window.innerWidth<760)zs.style.visibility=m?"":"hidden";};
   head.onclick=()=>setMini(!el.classList.contains("mini"));
   setMini(window.innerWidth<760);
 }).catch(()=>{});
