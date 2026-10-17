@@ -87,6 +87,13 @@
 </style>
 </head>
 <body>
+<div id="intro" style="position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0;background:linear-gradient(160deg,#0e0a04 0%,#1f140a 50%,#2a1c0e 100%);transition:opacity .5s">
+  <div style="font-size:80px;margin-bottom:8px;filter:drop-shadow(0 0 24px #b9733e88)">🍄</div>
+  <div style="font-family:'Fraunces';font-style:italic;font-weight:600;font-size:52px;background:linear-gradient(180deg,#fff,#ecc98c);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1">Cèpes</div>
+  <div style="font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:#e3ab4d;margin:6px 0 18px">Carte de prospection · Pays Basque</div>
+  <div style="color:rgba(244,234,214,.55);font-size:13px;max-width:280px;text-align:center;line-height:1.6">Trouve les meilleurs spots selon les essences, le relief et la météo récente.</div>
+  <button onclick="document.getElementById('intro').style.opacity=0;setTimeout(()=>document.getElementById('intro').remove(),520)" style="margin-top:24px;background:#b9733e;border:none;border-radius:24px;color:#fff;font-size:14px;font-weight:700;padding:12px 30px;cursor:pointer;letter-spacing:.04em;box-shadow:0 6px 24px rgba(185,115,62,.4)">Ouvrir la carte →</button>
+</div>
 <div id="map"></div>
 <button id="hero-toggle" title="Afficher/masquer les options">☰</button>
 <button id="loc-btn" title="Centrer sur ma position">📍 Où je suis</button>
