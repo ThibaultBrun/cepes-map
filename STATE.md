@@ -21,6 +21,7 @@
 6. [x] Radar : prévoir la **fenêtre future** (indice sur les 7 j de prévi) + mini courbe pluie.
 7. [x] Polish mobile : panel hero collapsible (☰ toggle) + bouton "📍 Où je suis" centré. Partage de spot (permalien) → à faire.
 8. [x] Perf : clusters parkings MapLibre (4000 pts → cercles agrégés + count + zoom auto) + click expand.
+9. [x] **Espèces GBIF colorées** : 4 couleurs distinctes par espèce (edulis=or, aereus=brun, pinophilus=rouille, reticulatus=ocre) + légende espèces + popup nom FR + nom latin.
 
 
 ## Repo & commits
@@ -40,3 +41,5 @@
 - 2026-10-18 02:32 — Passe 9 : 📥 export GPX — bouton "Exporter en GPX" dans le panel Meilleurs Coins → télécharge waypoints des top spots visibles, prêt GPS/téléphone.
 - 2026-10-18 02:57 — Passe 10 : 🔍 geocoder communes (API IGN Géoplateforme, suggestions live, flyTo) + 🍂 badge saison dynamique (Pleine saison · Oct–Nov) dans le hero panel.
 - 2026-10-18 03:09 — Passe 11 : ✅ checklist conditions dans le radar (humidité 14j / température demain / saison / fenêtre future) avec ✅/⚠️/❌ depuis push.json.
+- 2026-10-18 03:32 — Passe 12 : 📲 PWA installable — manifest.json (name/icons/shortcuts), SW cache-first, icône champignon SVG champêtre, bouton "Installer" dans le hero (visible si beforeinstallprompt), apple-mobile-web-app meta tags.
+- 2026-10-18 03:49 — Passe 13 : 🍄 Espèces GBIF colorées — 4 couleurs data-driven (edulis or/aereus brun/pinophilus rouille/reticulatus ocre), glow matching, légende 4 espèces, popup enrichi avec nom FR + latin + indicateur couleur.

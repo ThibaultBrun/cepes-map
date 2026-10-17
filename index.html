@@ -162,7 +162,15 @@
   </div>
   <div class="leg"><span class="sw" style="background:linear-gradient(90deg,#ffd76a,#b9733e)"></span> ✨ Spots prime (versant sud ∩ forêt)</div>
   <div class="leg"><span class="sw" style="background:#f5c842;border-color:#d4a012"></span> 🥇 Meilleurs coins (chêne/châtaignier/hêtre)</div>
-  <div class="leg"><span class="sw" style="background:#ffe08a;border-color:#b9351a"></span> 🍄 Trouvailles réelles (GBIF)</div>
+  <div class="leg" style="flex-direction:column;align-items:flex-start;gap:2px">
+    <span style="font-size:12px;font-weight:600">🍄 Trouvailles réelles (GBIF)</span>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:2px">
+      <span class="leg" style="gap:4px;font-size:11px;padding:0"><span class="sw" style="background:#f5c842;border-color:#b9351a;width:10px;height:10px;flex-shrink:0"></span>B. edulis</span>
+      <span class="leg" style="gap:4px;font-size:11px;padding:0"><span class="sw" style="background:#5c2d00;border-color:#ff9944;width:10px;height:10px;flex-shrink:0"></span>B. aereus</span>
+      <span class="leg" style="gap:4px;font-size:11px;padding:0"><span class="sw" style="background:#c0430c;border-color:#ff9944;width:10px;height:10px;flex-shrink:0"></span>B. pinophilus</span>
+      <span class="leg" style="gap:4px;font-size:11px;padding:0"><span class="sw" style="background:#d4a558;border-color:#a07020;width:10px;height:10px;flex-shrink:0"></span>B. reticulatus</span>
+    </div>
+  </div>
   <div class="note">🎯 Vise les <b>spots en or</b> (versant sud chaud + bonne essence), ~10 j après une bonne pluie. Les points 🍄 sont de <b>vraies récoltes</b> déclarées (validation). Clique une parcelle ou un point pour le détail.</div>
   <button id="install-btn" onclick="window._pwaPrompt&&window._pwaPrompt.prompt()">📲 Installer l'app sur mon téléphone</button>
 </div>
@@ -213,9 +221,9 @@ const map = new maplibregl.Map({
       { id: "essence", type: "raster", source: "essence", layout: { visibility: "none" }, paint: { "raster-opacity": 0.72 } },
       { id: "prime", type: "raster", source: "prime", paint: { "raster-opacity": 0.85 } },
       { id: "gbif-glow", type: "circle", source: "gbif", layout: { visibility: "none" },
-        paint: { "circle-radius": 9, "circle-color": "#ff5a3c", "circle-blur": 1, "circle-opacity": 0.5 } },
+        paint: { "circle-radius": 10, "circle-color": ["match",["get","species"],"Boletus edulis","#f5c842","Boletus aereus","#7a3500","Boletus pinophilus","#ff5a1a","Boletus reticulatus","#d4a558","#ff5a3c"], "circle-blur": 1.1, "circle-opacity": 0.55 } },
       { id: "gbif-pt", type: "circle", source: "gbif", layout: { visibility: "none" },
-        paint: { "circle-radius": 4, "circle-color": "#ffe08a", "circle-stroke-color": "#b9351a", "circle-stroke-width": 1.5 } },
+        paint: { "circle-radius": 5, "circle-color": ["match",["get","species"],"Boletus edulis","#f5c842","Boletus aereus","#5c2d00","Boletus pinophilus","#c0430c","Boletus reticulatus","#d4a558","#ffe08a"], "circle-stroke-color": ["match",["get","species"],"Boletus edulis","#b9351a","Boletus aereus","#ff9944","Boletus pinophilus","#ff9944","Boletus reticulatus","#a07020","#b9351a"], "circle-stroke-width": 1.8 } },
       { id: "sentiers", type: "line", source: "sentiers", "source-layer": "sentiers", layout: { visibility: "none", "line-cap": "round" },
         paint: { "line-color": "#f6e3a8", "line-width": ["interpolate",["linear"],["zoom"],11,0.4,14,1.6], "line-opacity": 0.85, "line-dasharray": [2,1.5] } },
       { id: "parkings-cluster", type: "circle", source: "parkings", filter: ["has","point_count"], layout: { visibility: "none" },
@@ -256,8 +264,12 @@ map.on("click","parkings-cluster",(e)=>{
 });
 map.on("mouseenter","parkings-cluster",()=>map.getCanvas().style.cursor="pointer");
 map.on("mouseleave","parkings-cluster",()=>map.getCanvas().style.cursor="");
+const GBIF_COL={"Boletus edulis":"#f5c842","Boletus aereus":"#5c2d00","Boletus pinophilus":"#c0430c","Boletus reticulatus":"#d4a558"};
+const GBIF_FR={"Boletus edulis":"Cèpe de Bordeaux","Boletus aereus":"Cèpe tête-de-nègre","Boletus pinophilus":"Cèpe des pins","Boletus reticulatus":"Cèpe réticulé"};
 map.on("click","gbif-pt",(e)=>{const p=e.features[0].properties;
-  new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<b>${p.species||"Boletus"}</b><br><span style="opacity:.65">trouvé ici${p.year?" · "+p.year:""}</span>`).addTo(map);});
+  const col=GBIF_COL[p.species]||"#f5c842";
+  const fr=GBIF_FR[p.species]||p.species||"Boletus";
+  new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${col};margin-right:5px;vertical-align:middle"></span><b>${fr}</b><br><span style="opacity:.65;font-size:11px;font-style:italic">${p.species||""}</span><br><span style="opacity:.65">Observation${p.year?" · "+p.year:""}</span>`).addTo(map);});
 // Coins panel: list top score=3 parcels visible on screen
 let _coinsOpen = true;
 document.getElementById("coins-head").onclick = () => {
