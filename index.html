@@ -13,6 +13,19 @@
 <link rel="apple-touch-icon" href="icon.svg">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="description" content="Carte de prospection cèpes — spots, essences, météo. Pays Basque.">
+<!-- Open Graph / Social sharing -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://cepes.tbrun.dev/">
+<meta property="og:title" content="Cèpes · Pays Basque — carte de prospection">
+<meta property="og:description" content="Spots chênaies & hêtraies, couche essences 10m, observations GBIF et radar météo de poussée. Pays Basque.">
+<meta property="og:image" content="https://cepes.tbrun.dev/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="fr_FR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Cèpes · Pays Basque — carte de prospection">
+<meta name="twitter:description" content="Spots chênaies & hêtraies, couche essences 10m, observations GBIF et radar météo. Pays Basque.">
+<meta name="twitter:image" content="https://cepes.tbrun.dev/og-image.jpg">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://unpkg.com/pmtiles@3.2.1/dist/pmtiles.js"></script>
@@ -134,10 +147,40 @@
 <div id="intro" style="position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0;background:linear-gradient(160deg,#0e0a04 0%,#1f140a 50%,#2a1c0e 100%);transition:opacity .5s">
   <div style="font-size:80px;margin-bottom:8px;filter:drop-shadow(0 0 24px #b9733e88)">🍄</div>
   <div style="font-family:'Fraunces';font-style:italic;font-weight:600;font-size:52px;background:linear-gradient(180deg,#fff,#ecc98c);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1">Cèpes</div>
-  <div style="font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:#e3ab4d;margin:6px 0 18px">Carte de prospection · Pays Basque</div>
-  <div style="color:rgba(244,234,214,.55);font-size:13px;max-width:280px;text-align:center;line-height:1.6">Trouve les meilleurs spots selon les essences, le relief et la météo récente.</div>
-  <button onclick="document.getElementById('intro').style.opacity=0;setTimeout(()=>document.getElementById('intro').remove(),520)" style="margin-top:24px;background:#b9733e;border:none;border-radius:24px;color:#fff;font-size:14px;font-weight:700;padding:12px 30px;cursor:pointer;letter-spacing:.04em;box-shadow:0 6px 24px rgba(185,115,62,.4)">Ouvrir la carte →</button>
+  <div style="font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:#e3ab4d;margin:6px 0 14px">Carte de prospection · Pays Basque</div>
+  <div id="intro-score" style="display:none;align-items:center;gap:10px;margin-bottom:14px;padding:10px 20px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(227,171,77,.2)">
+    <div id="intro-score-ring" style="width:48px;height:48px;position:relative;flex-shrink:0">
+      <svg width="48" height="48" viewBox="0 0 48 48" style="transform:rotate(-90deg)">
+        <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="4"/>
+        <circle id="intro-score-arc" cx="24" cy="24" r="20" fill="none" stroke="#e3ab4d" stroke-width="4" stroke-linecap="round" stroke-dasharray="125.6" stroke-dashoffset="125.6"/>
+      </svg>
+      <div id="intro-score-num" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#e3ab4d"></div>
+    </div>
+    <div>
+      <div id="intro-verdict" style="font-size:12px;color:rgba(244,234,214,.85);max-width:200px;line-height:1.4"></div>
+      <div id="intro-next" style="font-size:10.5px;color:rgba(227,171,77,.7);margin-top:3px"></div>
+    </div>
+  </div>
+  <div style="color:rgba(244,234,214,.45);font-size:12px;max-width:260px;text-align:center;line-height:1.6">Spots · Essences 10m · Observations GBIF</div>
+  <button onclick="document.getElementById('intro').style.opacity=0;setTimeout(()=>document.getElementById('intro').remove(),520)" style="margin-top:22px;background:#b9733e;border:none;border-radius:24px;color:#fff;font-size:14px;font-weight:700;padding:12px 30px;cursor:pointer;letter-spacing:.04em;box-shadow:0 6px 24px rgba(185,115,62,.4)">Ouvrir la carte →</button>
 </div>
+<script>
+fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
+  const sc=p.score||0;
+  const col=sc>=85?"#49c173":sc>=60?"#9acd32":sc>=35?"#e3ab4d":"#8fb3cf";
+  const pct=125.6*(1-sc/100);
+  const arc=document.getElementById('intro-score-arc');
+  if(arc){arc.style.stroke=col;arc.style.strokeDashoffset=pct;}
+  const num=document.getElementById('intro-score-num');
+  if(num){num.textContent=sc;num.style.color=col;}
+  const vrd=document.getElementById('intro-verdict');
+  if(vrd) vrd.textContent=p.verdict||"";
+  const nxt=document.getElementById('intro-next');
+  if(nxt&&p.next_rain) nxt.textContent="Prochaine pluie : "+p.next_rain.date.slice(8,10)+"/"+p.next_rain.date.slice(5,7)+" ("+p.next_rain.mm+" mm)";
+  const box=document.getElementById('intro-score');
+  if(box){box.style.display='flex';box.style.borderColor=col+"44";}
+}).catch(()=>{});
+</script>
 <div id="map"></div>
 <div id="map-tip"></div>
 <button id="hero-toggle" title="Afficher/masquer les options">☰</button>
