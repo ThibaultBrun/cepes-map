@@ -42,6 +42,12 @@
   #push .t{font-family:"Fraunces";font-style:italic;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
   #push .v{font-weight:600;font-size:14.5px;line-height:1.25}
   #push .d{color:var(--dim);margin-top:6px;line-height:1.5;font-size:11.5px}
+  .sparkline{display:flex;align-items:flex-end;gap:3px;height:32px;margin-top:9px;padding-top:4px;border-top:1px solid var(--line)}
+  .spark-bar{flex:1;border-radius:3px 3px 0 0;min-height:2px;position:relative;transition:.2s;cursor:default}
+  .spark-bar:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);white-space:nowrap;background:rgba(26,19,12,.95);color:var(--cream);font-size:9.5px;padding:2px 6px;border-radius:6px;pointer-events:none;border:1px solid var(--line)}
+  .spark-label{display:flex;justify-content:space-between;font-size:9px;opacity:.5;margin-top:2px}
+  .fut-idx{margin-top:7px;font-size:11px;display:flex;align-items:center;gap:6px}
+  .fut-dot{width:8px;height:8px;border-radius:50%;flex:none}
   .maplibregl-popup-content{background:#241a10;color:var(--cream);border-radius:12px;font-size:12px;padding:10px 12px;border:1px solid var(--line)}
   .maplibregl-popup-content b{font-size:13px;font-family:"Fraunces";font-style:italic}
   .maplibregl-popup-tip{border-top-color:#241a10!important;border-bottom-color:#241a10!important}
@@ -230,8 +236,27 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   const bits=[]; if(p.window) bits.push(p.window);
   bits.push(`pluie 14 j : <b>${p.rain14} mm</b>`);
   if(p.next_rain) bits.push(`prochaine pluie : ${p.next_rain.date.slice(8,10)}/${p.next_rain.date.slice(5,7)} (${p.next_rain.mm} mm)`);
+  // sparkline prévisions 7j
+  let sparkHtml = "";
+  if(p.forecast && p.forecast.length) {
+    const maxR = Math.max(...p.forecast.map(f=>f.rain), 5);
+    const bars = p.forecast.map(f=>{
+      const pct = Math.round((f.rain/maxR)*100);
+      const h = Math.max(2, Math.round(pct*0.3));
+      const bc = f.rain>=15?"#4fc3a1": f.rain>=8?"#9acd32": f.rain>=3?"#e3ab4d":"#8fb3cf";
+      const dd = f.date.slice(8,10)+"/"+f.date.slice(5,7);
+      return `<div class="spark-bar" style="height:${h}px;background:${bc}" data-tip="${dd} · ${f.rain}mm · ${f.tmax}°C"></div>`;
+    }).join("");
+    const d0=p.forecast[0].date,d1=p.forecast[p.forecast.length-1].date;
+    const lbl0=d0.slice(8,10)+"/"+d0.slice(5,7), lbl1=d1.slice(8,10)+"/"+d1.slice(5,7);
+    const futCol = p.score_future>=70?"#9acd32": p.score_future>=50?"#e3ab4d":"#8fb3cf";
+    const futTxt = p.score_future>=70?"Fenêtre potentielle dans les 7j": p.score_future>=50?"Pluie prévue, fenêtre possible":"Pas de forte pluie prévue";
+    sparkHtml = `<div class="sparkline">${bars}</div>
+    <div class="spark-label"><span>${lbl0}</span><span>${lbl1}</span></div>
+    <div class="fut-idx"><div class="fut-dot" style="background:${futCol};box-shadow:0 0 6px ${futCol}"></div><span style="color:${futCol}">${futTxt}</span></div>`;
+  }
   const el=document.getElementById("push");
-  el.innerHTML=`<div class="t">🍄 Radar de poussée</div><div class="v">${dot}${p.verdict}</div><div class="d">${bits.join(" · ")}</div>`;
+  el.innerHTML=`<div class="t">🍄 Radar de poussée</div><div class="v">${dot}${p.verdict}</div><div class="d">${bits.join(" · ")}</div>${sparkHtml}`;
   el.style.display="block"; el.style.borderColor=col+"55";
 }).catch(()=>{});
 </script>

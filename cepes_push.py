@@ -51,11 +51,31 @@ def compute():
     # prochaine pluie prévue (jours futurs)
     fut = [(days[i], rain[i]) for i in range(ti + 1, len(rain)) if (rain[i] or 0) >= 10]
     nextrain = fut[0] if fut else None
+    # prévisions J+1..J+7 pour sparkline
+    forecast = []
+    for i in range(ti + 1, min(ti + 8, len(days))):
+        r_mm = round(rain[i] or 0, 1)
+        forecast.append({"date": days[i], "rain": r_mm,
+                         "tmax": round(tmax[i] or 0, 1), "tmin": round(tmin[i] or 0, 1)})
+    # indice futur : si grosse saucée prévue dans les 7j, calcul lag potentiel
+    rain_fut7 = sum(x["rain"] for x in forecast)
+    score_future = 0
+    for k, fc in enumerate(forecast):
+        r3 = sum(x["rain"] for x in forecast[max(0,k-2):k+1])
+        if r3 >= 25 or fc["rain"] >= 18:
+            pot_lag = k + 1  # jours depuis auj à la saucée + fenêtre optimale
+            if 7 <= pot_lag <= 17:
+                score_future = 70
+            elif pot_lag < 7:
+                score_future = 50
+            break
     return {"ts": datetime.datetime.now().isoformat(timespec="minutes"),
             "score": score, "verdict": verdict, "lag": lag,
             "window": window,
             "next_rain": ({"date": nextrain[0], "mm": round(nextrain[1])} if nextrain else None),
-            "rain14": round(sum(x or 0 for x in rain[max(0, ti - 13):ti + 1]))}
+            "rain14": round(sum(x or 0 for x in rain[max(0, ti - 13):ti + 1])),
+            "forecast": forecast, "score_future": score_future,
+            "rain_fut7": round(rain_fut7)}
 
 def discord(msg):
     try:
