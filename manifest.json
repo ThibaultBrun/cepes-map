@@ -1,0 +1,35 @@
+{
+  "name": "Cèpes · Pays Basque",
+  "short_name": "Cèpes 🍄",
+  "description": "Carte de prospection champignons — spots, essences, météo",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0e0a04",
+  "theme_color": "#161009",
+  "lang": "fr",
+  "categories": ["outdoors", "navigation"],
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Radar de poussée",
+      "short_name": "Radar",
+      "description": "Voir les conditions actuelles",
+      "url": "/#radar"
+    },
+    {
+      "name": "Meilleurs coins",
+      "short_name": "Top spots",
+      "description": "Afficher les meilleurs spots",
+      "url": "/#coins"
+    }
+  ]
+}

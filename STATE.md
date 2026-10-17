@@ -38,3 +38,5 @@
 - 2026-10-18 02:21 — Passe 7 : 🔗 partage de spot (clic droit → popup permalien hash URL + bouton copier).
 - 2026-10-18 02:24 — Passe 8 : 🍄 écran d'intro splash (fond brun, typo Fraunces italic, bouton cuivre "Ouvrir la carte").
 - 2026-10-18 02:32 — Passe 9 : 📥 export GPX — bouton "Exporter en GPX" dans le panel Meilleurs Coins → télécharge waypoints des top spots visibles, prêt GPS/téléphone.
+- 2026-10-18 02:57 — Passe 10 : 🔍 geocoder communes (API IGN Géoplateforme, suggestions live, flyTo) + 🍂 badge saison dynamique (Pleine saison · Oct–Nov) dans le hero panel.
+- 2026-10-18 03:09 — Passe 11 : ✅ checklist conditions dans le radar (humidité 14j / température demain / saison / fenêtre future) avec ✅/⚠️/❌ depuis push.json.

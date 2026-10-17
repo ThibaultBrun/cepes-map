@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#161009">
 <title>Cèpes · Pays Basque — carte de prospection</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cèpes 🍄">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="Carte de prospection cèpes — spots, essences, météo. Pays Basque.">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://unpkg.com/pmtiles@3.2.1/dist/pmtiles.js"></script>
@@ -108,6 +116,10 @@
     #hero-toggle{display:flex}
     #loc-btn{bottom:14px;font-size:12px;padding:8px 14px}
   }
+  #install-btn{display:none;width:100%;margin-top:8px;padding:7px 12px;border:1px solid var(--line);
+    border-radius:10px;background:rgba(227,171,77,.12);color:var(--gold);font-size:11.5px;
+    cursor:pointer;font-family:inherit;transition:.2s;text-align:left}
+  #install-btn:hover{background:rgba(227,171,77,.22)}
 </style>
 </head>
 <body>
@@ -152,6 +164,7 @@
   <div class="leg"><span class="sw" style="background:#f5c842;border-color:#d4a012"></span> 🥇 Meilleurs coins (chêne/châtaignier/hêtre)</div>
   <div class="leg"><span class="sw" style="background:#ffe08a;border-color:#b9351a"></span> 🍄 Trouvailles réelles (GBIF)</div>
   <div class="note">🎯 Vise les <b>spots en or</b> (versant sud chaud + bonne essence), ~10 j après une bonne pluie. Les points 🍄 sont de <b>vraies récoltes</b> déclarées (validation). Clique une parcelle ou un point pour le détail.</div>
+  <button id="install-btn" onclick="window._pwaPrompt&&window._pwaPrompt.prompt()">📲 Installer l'app sur mon téléphone</button>
 </div>
 <div class="card" id="push"></div>
 <div class="card" id="coins">
@@ -390,6 +403,21 @@ map.getCanvas().addEventListener("contextmenu", (e) => {
   inp.addEventListener("keydown", e=>{ if(e.key==="Escape"){ res.style.display="none"; inp.blur(); } });
   document.addEventListener("click", e=>{ if(!inp.contains(e.target)&&!res.contains(e.target)) res.style.display="none"; });
 })();
+// PWA: service worker + install prompt
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  window._pwaPrompt = e;
+  const btn = document.getElementById('install-btn');
+  if (btn) btn.style.display = 'block';
+});
+window.addEventListener('appinstalled', () => {
+  const btn = document.getElementById('install-btn');
+  if (btn) btn.style.display = 'none';
+});
+
 fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   const col = p.score>=85?"#49c173": p.score>=60?"#9acd32": p.score>=35?"#e3ab4d":"#8fb3cf";
   const dot = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${col};box-shadow:0 0 12px ${col};margin-right:8px;vertical-align:middle"></span>`;

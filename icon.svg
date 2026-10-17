@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2a1c0e"/>
+      <stop offset="100%" stop-color="#0e0a04"/>
+    </radialGradient>
+    <radialGradient id="cap" cx="40%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#c97e3a"/>
+      <stop offset="70%" stop-color="#9e5a1e"/>
+      <stop offset="100%" stop-color="#7a3e10"/>
+    </radialGradient>
+    <radialGradient id="hl" cx="35%" cy="30%" r="40%">
+      <stop offset="0%" stop-color="rgba(255,220,150,0.45)"/>
+      <stop offset="100%" stop-color="rgba(255,220,150,0)"/>
+    </radialGradient>
+  </defs>
+  <!-- Background rounded square -->
+  <rect width="512" height="512" rx="110" fill="url(#bg)"/>
+  <!-- Ground line suggestion -->
+  <ellipse cx="256" cy="390" rx="130" ry="18" fill="rgba(90,160,90,0.2)"/>
+  <!-- Stem -->
+  <path d="M220 370 Q218 310 228 280 Q240 260 256 258 Q272 260 284 280 Q294 310 292 370 Z" fill="#d4a45e"/>
+  <path d="M228 280 Q240 268 256 268 Q272 268 284 280 Q278 290 256 292 Q234 290 228 280Z" fill="rgba(255,200,120,0.35)"/>
+  <!-- Skirt/ring -->
+  <ellipse cx="256" cy="330" rx="48" ry="9" fill="rgba(220,170,90,0.5)" stroke="rgba(220,170,90,0.6)" stroke-width="1"/>
+  <!-- Cap -->
+  <path d="M96 278 Q120 148 256 138 Q392 148 416 278 Q380 300 256 305 Q132 300 96 278Z" fill="url(#cap)"/>
+  <path d="M96 278 Q120 148 256 138 Q392 148 416 278 Q380 300 256 305 Q132 300 96 278Z" fill="url(#hl)"/>
+  <!-- Pores/texture dots -->
+  <circle cx="200" cy="235" r="5" fill="rgba(80,40,10,0.35)"/>
+  <circle cx="240" cy="210" r="4" fill="rgba(80,40,10,0.3)"/>
+  <circle cx="280" cy="215" r="5" fill="rgba(80,40,10,0.35)"/>
+  <circle cx="320" cy="238" r="4" fill="rgba(80,40,10,0.3)"/>
+  <circle cx="255" cy="250" r="4" fill="rgba(80,40,10,0.3)"/>
+  <!-- Small sparkle -->
+  <circle cx="370" cy="165" r="4" fill="#e3ab4d" opacity="0.6"/>
+  <circle cx="380" cy="175" r="2" fill="#e3ab4d" opacity="0.4"/>
+  <!-- Gold accent text — tiny dot at bottom -->
+  <circle cx="256" cy="418" r="8" fill="#e3ab4d" opacity="0.7"/>
+</svg>
