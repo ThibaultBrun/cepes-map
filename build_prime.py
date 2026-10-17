@@ -25,28 +25,32 @@ ds_s = gdal.Open(f"{WORK}/slope.tif"); slope = ds_s.ReadAsArray().astype("float3
 ds_a = gdal.Open(f"{WORK}/aspect.tif"); asp = ds_a.ReadAsArray().astype("float32")
 score = gdal.Open(f"{WORK}/forest_score.tif").ReadAsArray().astype("float32")
 
-# base essence = moteur principal
-base = np.select([score >= 3, score >= 2, score >= 1], [1.0, 0.72, 0.38], default=0.0).astype("float32")
-# exposition douce (secondaire, nord non exclu)
+# base essence = moteur principal, mais contraste marqué (le feuillu "possible" pèse peu)
+base = np.select([score >= 3, score >= 2, score >= 1], [1.0, 0.58, 0.26], default=0.0).astype("float32")
+# exposition : PLEINE plage (0.45..1.0), compte vraiment — pic SSE, nord non exclu
 warm = (np.cos(np.radians(asp - 155.0)) + 1.0) / 2.0
-expo = 0.45 + 0.55 * warm; expo[asp < -1] = 0.72
-sf = np.where(slope < 2, 0.6, np.where(slope <= 22, 1.0,
-     np.where(slope <= 38, 1.0 - 0.55*(slope-22)/16.0, 0.45))).astype("float32")
+expo = 0.45 + 0.55 * warm; expo[asp < -1] = 0.70
+# pente : PLEINE plage (0.4..1.0), pic 6-22°
+sf = np.where(slope < 2, 0.55, np.where(slope <= 22, 1.0,
+     np.where(slope <= 38, 1.0 - 0.60*(slope-22)/16.0, 0.40))).astype("float32")
 
 # LISIÈRE : pixels de forêt à <=2 px (~60 m) d'une bordure forêt/non-forêt
 forest = score >= 1
 near_edge = ndimage.binary_dilation(~forest, iterations=2)
 lisiere = forest & near_edge
-edge_bonus = np.where(lisiere, 0.22, 0.0).astype("float32")
 
-prime = np.clip(base * (0.6 + 0.4*expo) * (0.75 + 0.25*sf) + edge_bonus * (base > 0), 0, 1).astype("float32")
+# produit plein-range : essence × expo × pente, puis boost lisière multiplicatif
+prime = base * expo * sf
+prime = np.clip(prime * np.where(lisiere, 1.25, 1.0), 0, 1).astype("float32")
 
-t = np.clip((prime - 0.42) / 0.58, 0, 1); show = t > 0
+# affichage NUANCÉ : seuil haut + gamma → seul le vrai top est vif, le médiocre s'estompe
+t = np.clip((prime - 0.30) / 0.70, 0, 1) ** 1.5
+show = t > 0.015
 rgba = np.zeros((4, H, W), dtype="uint8")
-rgba[0] = np.where(show, 255, 0)
-rgba[1] = np.where(show, (215 - 55*t), 0)
-rgba[2] = np.where(show, (110 - 70*t), 0)
-rgba[3] = np.where(show, (110 + 125*t), 0)
+rgba[0] = np.where(show, 255, 0)                 # R constant
+rgba[1] = np.where(show, (230 - 160*t), 0)       # G : 230 (jaune) -> 70 (rouge)
+rgba[2] = np.where(show, (150 - 125*t), 0)       # B : 150 -> 25
+rgba[3] = np.where(show, (26 + 206*t), 0)        # alpha : 26 (quasi invisible) -> 232
 drv = gdal.GetDriverByName("GTiff")
 out = drv.Create(f"{WORK}/prime_rgba.tif", W, H, 4, gdal.GDT_Byte)
 out.SetGeoTransform(gt); out.SetProjection(dem.GetProjection())

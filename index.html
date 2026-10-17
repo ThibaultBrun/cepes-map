@@ -215,7 +215,7 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   </div>
   <label class="row"><input type="checkbox" id="t-plan"> 🗺️ Fond plan (carto)</label>
   <label class="row"><input type="checkbox" id="t-foret" checked> 🌳 Potentiel forêt</label>
-  <label class="row"><input type="checkbox" id="t-prime" checked> ✨ Spots prime (sud ∩ forêt)</label>
+  <label class="row"><input type="checkbox" id="t-prime" checked> ✨ Spots prime (score cèpe)</label>
   <label class="row"><input type="checkbox" id="t-best" checked> 🥇 Meilleurs coins (cèpe de Bordeaux)</label>
   <label class="row"><input type="checkbox" id="t-gbif"> 🍄 Trouvailles réelles (GBIF)</label>
   <label class="row"><input type="checkbox" id="t-ess"> 🌲 Essences 10m (Copernicus)</label>
@@ -234,7 +234,13 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
     <div class="leg"><span class="sw" style="background:#52b788"></span> 🌿 Feuillu mixte — bon</div>
     <div class="leg"><span class="sw" style="background:#2d6a4f"></span> 🌲 Pin (Pinus) — B. pinophilus</div>
   </div>
-  <div class="leg"><span class="sw" style="background:linear-gradient(90deg,#ffd76a,#b9733e)"></span> ✨ Spots prime (essence × expo + lisière)</div>
+  <div class="leg" style="flex-direction:column;align-items:flex-start;gap:3px">
+    <span style="font-size:12px;font-weight:600">✨ Spots prime (essence × expo × pente + lisière)</span>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
+      <div style="width:90px;height:8px;border-radius:4px;background:linear-gradient(90deg,rgba(255,230,150,.35),#ff9c3a,#c43a16);border:1px solid rgba(255,255,255,.12)"></div>
+      <span style="font-size:10px;opacity:.6">faible → fort</span>
+    </div>
+  </div>
   <div class="leg"><span class="sw" style="background:rgba(190,205,95,.7);border-color:#9bb54a"></span> 🌾 Lisières (effet de bordure)</div>
   <div class="leg"><span class="sw" style="background:#f5c842;border-color:#d4a012"></span> 🥇 Meilleurs coins (chêne/châtaignier/hêtre)</div>
   <div class="leg" style="flex-direction:column;align-items:flex-start;gap:2px">
