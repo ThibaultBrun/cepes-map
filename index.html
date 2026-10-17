@@ -375,8 +375,36 @@ const map = new maplibregl.Map({
   center: [-1.49, 43.33], zoom: 11.3, pitch: 62, bearing: -18
 });
 map.addControl(new maplibregl.NavigationControl({visualizePitch:true}), "bottom-right");
-map.addControl(new maplibregl.GeolocateControl({positionOptions:{enableHighAccuracy:true},trackUserLocation:true,showUserHeading:true}), "bottom-right");
+const geoCtrl = new maplibregl.GeolocateControl({positionOptions:{enableHighAccuracy:true},trackUserLocation:true,showUserHeading:false});
+map.addControl(geoCtrl, "bottom-right");
 map.addControl(new maplibregl.ScaleControl({unit:"metric"}));
+// ── Flèche GPS orientée (boussole du téléphone) ──
+let headMarker=null, headEl=null, headVisible=false;
+function ensureHead(){
+  if(headMarker) return;
+  headEl=document.createElement("div");
+  headEl.style.cssText="width:40px;height:40px;transition:transform .12s ease-out;will-change:transform";
+  headEl.innerHTML='<svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="8" fill="#1669d8" stroke="#fff" stroke-width="2.5"/><path d="M20 1 L28 15 L20 11 L12 15 Z" fill="#e3ab4d" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+  headMarker=new maplibregl.Marker({element:headEl, rotationAlignment:"map", pitchAlignment:"map"});
+}
+geoCtrl.on("geolocate",(e)=>{ ensureHead(); headMarker.setLngLat([e.coords.longitude,e.coords.latitude]).addTo(map); headVisible=true; });
+geoCtrl.on("trackuserlocationend",()=>{ if(headMarker){ headMarker.remove(); headVisible=false; } });
+function onOrient(ev){
+  if(!headVisible||!headMarker) return;
+  let h = (ev.webkitCompassHeading!=null) ? ev.webkitCompassHeading
+        : (ev.absolute && ev.alpha!=null) ? (360-ev.alpha) : null;
+  if(h!=null) headMarker.setRotation(h);
+}
+function startOrient(){ window.addEventListener("deviceorientationabsolute",onOrient,true); window.addEventListener("deviceorientation",onOrient,true); }
+setTimeout(()=>{
+  const btn=document.querySelector(".maplibregl-ctrl-geolocate");
+  if(!btn) return;
+  btn.addEventListener("click",()=>{
+    if(window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission==="function"){
+      DeviceOrientationEvent.requestPermission().then(s=>{ if(s==="granted") startOrient(); }).catch(()=>{});
+    } else startOrient();
+  });
+}, 600);
 function makeParkingIcon(){
   const s = 56, pad = 6, r = 12, c = document.createElement("canvas");
   c.width = c.height = s; const x = c.getContext("2d");
