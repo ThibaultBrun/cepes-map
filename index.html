@@ -283,6 +283,15 @@ heroToggle.onclick = () => {
   const collapsed = heroCard.classList.toggle("collapsed");
   heroToggle.textContent = collapsed ? "⊕" : "☰";
 };
+// Partage de spot : popup avec lien permalien sur click long / double-click
+let _shareTimeout;
+map.getCanvas().addEventListener("contextmenu", (e) => {
+  e.preventDefault();
+  const lngLat = map.unproject([e.offsetX, e.offsetY]);
+  const url = `${location.origin}${location.pathname}#${map.getZoom().toFixed(1)}/${lngLat.lng.toFixed(5)}/${lngLat.lat.toFixed(5)}`;
+  const html = `<b>📌 Partager ce coin</b><br><input id="share-url" value="${url}" style="width:100%;font-size:10px;background:#161009;color:var(--cream);border:1px solid var(--line);border-radius:6px;padding:4px 6px;margin:6px 0;outline:none" readonly onclick="this.select()"><br><button onclick="navigator.clipboard.writeText('${url.replace(/'/g,"\\'")}');this.textContent='✅ Copié !'" style="font-size:11px;padding:4px 10px;border-radius:8px;background:var(--moss);color:#fff;border:none;cursor:pointer">📋 Copier le lien</button>`;
+  new maplibregl.Popup({maxWidth:"260px"}).setLngLat(lngLat).setHTML(html).addTo(map);
+});
 
 fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   const col = p.score>=85?"#49c173": p.score>=60?"#9acd32": p.score>=35?"#e3ab4d":"#8fb3cf";
