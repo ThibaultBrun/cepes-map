@@ -41,6 +41,18 @@
   *{margin:0;box-sizing:border-box}
   html,body,#map{height:100%;width:100%}
   body{font-family:"Inter",system-ui,sans-serif;color:var(--cream)}
+  /* ── split Panoramax ── */
+  #pano{position:fixed;z-index:30;display:none;top:0;right:0;width:50vw;height:100%;background:#0d0a07;border-left:2px solid var(--gold)}
+  body.split #map{width:50vw}
+  body.split #pano{display:block}
+  body.split #coins,body.split #zone-stats{display:none!important}
+  #pano pnx-viewer,#pano pnx-photo-viewer{width:100%;height:100%;display:block}
+  #pano-close{position:absolute;z-index:31;top:10px;right:10px;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:rgba(20,14,8,.82);color:var(--cream);font-size:15px;cursor:pointer}
+  #pano-hint{position:absolute;z-index:31;left:10px;bottom:10px;max-width:46%;font-size:10.5px;line-height:1.4;color:var(--cream);background:rgba(20,14,8,.7);border:1px solid var(--line);border-radius:10px;padding:6px 9px}
+  @media(max-width:760px){
+    body.split #map{width:100%;height:50vh}
+    #pano{top:auto;bottom:0;width:100%;height:50vh;border-left:none;border-top:2px solid var(--gold)}
+  }
   .card{position:absolute;z-index:5;background:var(--wood);
     -webkit-backdrop-filter:blur(12px) saturate(1.2);backdrop-filter:blur(12px) saturate(1.2);
     border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 34px rgba(0,0,0,.45);
@@ -149,6 +161,11 @@
     border-radius:10px;background:rgba(227,171,77,.12);color:var(--gold);font-size:11.5px;
     cursor:pointer;font-family:inherit;transition:.2s;text-align:left}
   #install-btn:hover{background:rgba(227,171,77,.22)}
+  #pano-btn{width:100%;margin-top:8px;padding:8px 12px;border:1px solid var(--line);
+    border-radius:10px;background:rgba(227,171,77,.12);color:var(--gold);font-size:12px;font-weight:600;
+    cursor:pointer;font-family:inherit;transition:.2s;text-align:left}
+  #pano-btn:hover{background:rgba(227,171,77,.22)}
+  body.split #pano-btn{background:rgba(227,171,77,.28)}
   #map-tip{position:fixed;z-index:30;pointer-events:none;display:none;background:#241a10;
     border:1px solid var(--line);border-radius:9px;padding:5px 10px;font-size:11.5px;
     box-shadow:0 4px 16px rgba(0,0,0,.55);max-width:200px;line-height:1.5}
@@ -199,6 +216,7 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
 }).catch(()=>{});
 </script>
 <div id="map"></div>
+<div id="pano"><button id="pano-close" title="Fermer la vue terrain">✕</button><div id="pano-hint">📷 Clique sur la carte pour voir la photo terrain Panoramax la plus proche (repère l'accès, le sous-bois…).</div></div>
 <div id="map-tip"></div>
 <button id="hero-toggle" title="Afficher/masquer les options">☰</button>
 <button id="loc-btn" title="Centrer sur ma position">📍 Où je suis</button>
@@ -260,6 +278,7 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   <div class="note">🎯 Vise les <b>spots en or</b> : bonne essence (chêne/châtaignier/hêtre) d'abord, puis <b>lisières</b> et versants doux, ~10 j après une bonne pluie. Le nord/est frais compte autant que le sud ici (climat atlantique). Les points 🍄 sont de <b>vraies récoltes</b> déclarées. Clique une parcelle ou un point pour le détail.</div>
   <div style="margin-top:10px;padding-top:9px;border-top:1px solid var(--line);font-size:10.5px">
     <a href="#" id="about-link" style="color:var(--gold);text-decoration:none">ℹ️ À propos · Sources · Mentions légales</a></div>
+  <button id="pano-btn">📷 Vue terrain (Panoramax)</button>
   <button id="install-btn" onclick="window._pwaPrompt&&window._pwaPrompt.prompt()">📲 Installer l'app sur mon téléphone</button>
 </div>
 <div id="zone-stats"></div>
@@ -785,6 +804,73 @@ const aboutLink = document.getElementById("about-link");
 if (aboutLink) aboutLink.onclick = (e) => { e.preventDefault(); aboutOv.classList.add("on"); };
 document.getElementById("about-close").onclick = () => aboutOv.classList.remove("on");
 aboutOv.onclick = (e) => { if (e.target === aboutOv) aboutOv.classList.remove("on"); };
+
+// ── Panoramax : vue terrain en split (photos libres au sol) ──
+const PANO_API = "https://api.panoramax.xyz/api";
+const panoPane = document.getElementById("pano");
+let panoViewer = null, panoMarker = null;
+function loadPanoScript(){
+  return new Promise((res, rej) => {
+    if (window.__pnxLoaded) return res();
+    // le bundle Panoramax est en CJS : on shim exports/module pour un <script> classique
+    window.exports = window.exports || {};
+    window.module = window.module || { exports: window.exports };
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/@panoramax/web-viewer@5.2.0/build/cjs/index.js";
+    s.onload = () => customElements.whenDefined("pnx-viewer").then(() => { window.__pnxLoaded = true; res(); });
+    s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+async function nearestPic(lng, lat){
+  const d = 0.0028;
+  try{
+    const r = await fetch(`${PANO_API}/search?bbox=${lng-d},${lat-d},${lng+d},${lat+d}&limit=60`);
+    const j = await r.json();
+    let best = null, bd = Infinity;
+    for (const f of (j.features || [])){
+      if (!f.geometry || f.geometry.type !== "Point") continue;
+      const [x, y] = f.geometry.coordinates;
+      const dd = (x-lng)*(x-lng) + (y-lat)*(y-lat);
+      if (dd < bd){ bd = dd; best = { id: f.id, col: f.collection, coord: [x, y] }; }
+    }
+    return best;
+  } catch(e){ return null; }
+}
+function setPanoMarker(coord){
+  if (!panoMarker){
+    const el = document.createElement("div");
+    el.textContent = "📷"; el.style.cssText = "font-size:22px;line-height:1;filter:drop-shadow(0 1px 2px #000)";
+    panoMarker = new maplibregl.Marker({ element: el }).setLngLat(coord).addTo(map);
+  } else panoMarker.setLngLat(coord);
+}
+function showPic(p){
+  panoViewer.setAttribute("sequence", p.col);
+  panoViewer.setAttribute("picture", p.id);
+  setPanoMarker(p.coord);
+}
+async function openPano(){
+  document.body.classList.add("split");
+  setTimeout(() => map.resize(), 60);
+  try { await loadPanoScript(); } catch(e){ alert("Panoramax indisponible pour le moment."); closePano(); return; }
+  if (!panoViewer){
+    panoViewer = document.createElement("pnx-photo-viewer");
+    panoViewer.setAttribute("endpoint", PANO_API);
+    panoPane.appendChild(panoViewer);
+  }
+  const c = map.getCenter();
+  const p = await nearestPic(c.lng, c.lat);
+  if (p){ showPic(p); map.easeTo({ center: p.coord, duration: 500 }); }
+  else { document.getElementById("pano-hint").textContent = "📷 Pas de photo Panoramax ici — déplace-toi vers une route/piste couverte."; }
+}
+function closePano(){ document.body.classList.remove("split"); setTimeout(() => map.resize(), 60); }
+document.getElementById("pano-btn").onclick = () => document.body.classList.contains("split") ? closePano() : openPano();
+document.getElementById("pano-close").onclick = closePano;
+map.on("click", async (e) => {
+  if (!document.body.classList.contains("split") || !panoViewer) return;
+  const p = await nearestPic(e.lngLat.lng, e.lngLat.lat);
+  if (p) showPic(p);
+});
 </script>
 <style>
   #about-ov{position:fixed;inset:0;z-index:30;background:rgba(10,7,4,.72);
