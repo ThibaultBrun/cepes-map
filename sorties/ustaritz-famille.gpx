@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="cepes.tbrun.dev" xmlns="http://www.topografix.com/GPX/1/1">
+ <metadata><name>Chasse aux cepes - Grande foret d'Ustaritz (famille)</name><desc>Boucle 2,5km (D+ 72m), depart parking. Chenaie 378ha. Enfants 5 et 9 + grands-parents.</desc></metadata>
+ <wpt lat="43.387033" lon="-1.494881"><name>Camp de base</name><desc>Parking - depart & arrivee, en lisiere de la grande foret. 🚗</desc><sym>Flag</sym></wpt>
+ <wpt lat="43.384955" lon="-1.499307"><name>Porte de la foret</name><desc>On entre dans le royaume des chenes. Ouvrez l'oeil au sol ! 🌳</desc><sym>Flag</sym></wpt>
+ <wpt lat="43.383152" lon="-1.503204"><name>Le Roi Chene</name><desc>Trouve le plus gros chene : les cepes poussent a ses pieds. Compte les glands ! 👑</desc><sym>Flag</sym></wpt>
+ <wpt lat="43.382031" lon="-1.504226"><name>Clairiere du gouter</name><desc>Pause gouter ! Lumiere = lisiere = coin a cepes. 🍪🍄</desc><sym>Flag</sym></wpt>
+ <wpt lat="43.384062" lon="-1.502773"><name>Virage du sanglier</name><desc>Terre retournee = un sanglier a cherche des glands. Qui voit le 1er champi ? 🐗🔭</desc><sym>Flag</sym></wpt>
+ <wpt lat="43.386270" lon="-1.498288"><name>Sentier des fees</name><desc>Mousse + fougeres = sol frais. Dernier coup d'oeil avant le retour. 🧚</desc><sym>Flag</sym></wpt>
+ <trk><name>Boucle cepes grande foret Ustaritz</name><trkseg>
+  <trkpt lat="43.387033" lon="-1.494881"></trkpt>
+  <trkpt lat="43.386803" lon="-1.495004"></trkpt>
+  <trkpt lat="43.386183" lon="-1.495549"></trkpt>
+  <trkpt lat="43.386151" lon="-1.495899"></trkpt>
+  <trkpt lat="43.386152" lon="-1.495971"></trkpt>
+  <trkpt lat="43.386028" lon="-1.496241"></trkpt>
+  <trkpt lat="43.385922" lon="-1.496437"></trkpt>
+  <trkpt lat="43.385798" lon="-1.496643"></trkpt>
+  <trkpt lat="43.385619" lon="-1.496873"></trkpt>
+  <trkpt lat="43.385521" lon="-1.497027"></trkpt>
+  <trkpt lat="43.385407" lon="-1.497225"></trkpt>
+  <trkpt lat="43.385360" lon="-1.497485"></trkpt>
+  <trkpt lat="43.385361" lon="-1.497626"></trkpt>
+  <trkpt lat="43.385370" lon="-1.497977"></trkpt>
+  <trkpt lat="43.385278" lon="-1.498283"></trkpt>
+  <trkpt lat="43.385215" lon="-1.498496"></trkpt>
+  <trkpt lat="43.385174" lon="-1.498628"></trkpt>
+  <trkpt lat="43.385129" lon="-1.498886"></trkpt>
+  <trkpt lat="43.385106" lon="-1.499070"></trkpt>
+  <trkpt lat="43.384939" lon="-1.499332"></trkpt>
+  <trkpt lat="43.384869" lon="-1.499356"></trkpt>
+  <trkpt lat="43.384660" lon="-1.499439"></trkpt>
+  <trkpt lat="43.384454" lon="-1.499557"></trkpt>
+  <trkpt lat="43.384295" lon="-1.499516"></trkpt>
+  <trkpt lat="43.384032" lon="-1.499569"></trkpt>
+  <trkpt lat="43.383829" lon="-1.499708"></trkpt>
+  <trkpt lat="43.383613" lon="-1.499911"></trkpt>
+  <trkpt lat="43.383453" lon="-1.499947"></trkpt>
+  <trkpt lat="43.383401" lon="-1.500237"></trkpt>
+  <trkpt lat="43.383518" lon="-1.500497"></trkpt>
+  <trkpt lat="43.383525" lon="-1.500717"></trkpt>
+  <trkpt lat="43.383209" lon="-1.501103"></trkpt>
+  <trkpt lat="43.382803" lon="-1.501445"></trkpt>
+  <trkpt lat="43.382904" lon="-1.501756"></trkpt>
+  <trkpt lat="43.383247" lon="-1.502395"></trkpt>
+  <trkpt lat="43.383282" lon="-1.502636"></trkpt>
+  <trkpt lat="43.383150" lon="-1.503216"></trkpt>
+  <trkpt lat="43.382916" lon="-1.503666"></trkpt>
+  <trkpt lat="43.382693" lon="-1.504090"></trkpt>
+  <trkpt lat="43.382460" lon="-1.504342"></trkpt>
+  <trkpt lat="43.381217" lon="-1.504006"></trkpt>
+  <trkpt lat="43.382460" lon="-1.504342"></trkpt>
+  <trkpt lat="43.382673" lon="-1.504422"></trkpt>
+  <trkpt lat="43.382844" lon="-1.504463"></trkpt>
+  <trkpt lat="43.383046" lon="-1.504421"></trkpt>
+  <trkpt lat="43.384172" lon="-1.504948"></trkpt>
+  <trkpt lat="43.383981" lon="-1.504719"></trkpt>
+  <trkpt lat="43.383745" lon="-1.504379"></trkpt>
+  <trkpt lat="43.383714" lon="-1.504180"></trkpt>
+  <trkpt lat="43.383790" lon="-1.503641"></trkpt>
+  <trkpt lat="43.383770" lon="-1.503314"></trkpt>
+  <trkpt lat="43.384523" lon="-1.501922"></trkpt>
+  <trkpt lat="43.384673" lon="-1.501761"></trkpt>
+  <trkpt lat="43.384760" lon="-1.501447"></trkpt>
+  <trkpt lat="43.384743" lon="-1.501187"></trkpt>
+  <trkpt lat="43.384885" lon="-1.500422"></trkpt>
+  <trkpt lat="43.385092" lon="-1.500031"></trkpt>
+  <trkpt lat="43.385415" lon="-1.499620"></trkpt>
+  <trkpt lat="43.385749" lon="-1.499352"></trkpt>
+  <trkpt lat="43.386012" lon="-1.498861"></trkpt>
+  <trkpt lat="43.386166" lon="-1.498657"></trkpt>
+  <trkpt lat="43.386236" lon="-1.498352"></trkpt>
+  <trkpt lat="43.386486" lon="-1.497877"></trkpt>
+  <trkpt lat="43.386776" lon="-1.496850"></trkpt>
+  <trkpt lat="43.386885" lon="-1.496415"></trkpt>
+  <trkpt lat="43.386899" lon="-1.495938"></trkpt>
+  <trkpt lat="43.386854" lon="-1.495007"></trkpt>
+  <trkpt lat="43.387033" lon="-1.494881"></trkpt>
+ </trkseg></trk>
+</gpx>

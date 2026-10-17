@@ -166,6 +166,11 @@
     cursor:pointer;font-family:inherit;transition:.2s;text-align:left}
   #pano-btn:hover{background:rgba(227,171,77,.22)}
   body.split #pano-btn{background:rgba(227,171,77,.28)}
+  .sortie-chip{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;
+    background:rgba(25,224,255,.1);color:var(--cream);font-size:12px;font-weight:600;cursor:pointer;
+    font-family:inherit;transition:.2s;text-align:left;line-height:1.3}
+  .sortie-chip:hover{background:rgba(25,224,255,.2)}
+  .sortie-chip.on{background:rgba(25,224,255,.26);border-color:#19e0ff}
   #map-tip{position:fixed;z-index:30;pointer-events:none;display:none;background:#241a10;
     border:1px solid var(--line);border-radius:9px;padding:5px 10px;font-size:11.5px;
     box-shadow:0 4px 16px rgba(0,0,0,.55);max-width:200px;line-height:1.5}
@@ -243,6 +248,9 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   <label class="row"><input type="checkbox" id="t-sent"> 🥾 Sentiers &amp; pistes</label>
   <label class="row"><input type="checkbox" id="t-park"> 🅿️ Parkings</label>
   <div class="sep"></div>
+  <div class="kick" style="margin-bottom:6px">🥾 Mes sorties</div>
+  <button id="sortie-btn" class="sortie-chip">🍄 Grande forêt d'Ustaritz — famille · 2,5 km <span style="opacity:.6">▸</span></button>
+  <div class="sep"></div>
   <div class="leg"><span class="sw" style="background:#5c2e0c"></span> Chênes · châtaignier · hêtre <span style="opacity:.5;font-size:10px">(top)</span></div>
   <div class="leg"><span class="sw" style="background:#c07a3a"></span> Feuillus · pin maritime</div>
   <div class="leg"><span class="sw" style="background:#f2dcc0"></span> Autres conifères <span style="opacity:.5;font-size:10px">(possible)</span></div>
@@ -312,7 +320,8 @@ const map = new maplibregl.Map({
       prime: { type: "raster", tiles: ["https://cepes.tbrun.dev/prime/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
       gbif: { type: "geojson", data: "gbif.geojson" },
       strava: { type: "raster", tiles: ["https://cepes.tbrun.dev/strava/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
-      lisiere: { type: "raster", tiles: ["https://cepes.tbrun.dev/lisiere/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 }
+      lisiere: { type: "raster", tiles: ["https://cepes.tbrun.dev/lisiere/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
+      sortie: { type: "geojson", data: "sorties/ustaritz-famille.geojson" }
     },
     layers: [
       { id: "ortho", type: "raster", source: "ortho" },
@@ -355,7 +364,10 @@ const map = new maplibregl.Map({
         paint: { "line-color": "#f6e3a8", "line-width": ["interpolate",["linear"],["zoom"],11,0.4,14,1.6], "line-opacity": 0.85, "line-dasharray": [2,1.5] } },
       { id: "parkings", type: "symbol", source: "parkings", layout: { visibility: "none",
         "icon-image": "pk-icon", "icon-allow-overlap": true,
-        "icon-size": ["interpolate",["linear"],["zoom"], 9,0.42, 12,0.62, 15,0.9, 17,1.1] } }
+        "icon-size": ["interpolate",["linear"],["zoom"], 9,0.42, 12,0.62, 15,0.9, 17,1.1] } },
+      { id: "sortie-cas", type: "line", source: "sortie", filter: ["==",["get","kind"],"track"], layout: { visibility: "none", "line-cap":"round", "line-join":"round" }, paint: { "line-color": "#06303a", "line-width": 8, "line-opacity": 0.5 } },
+      { id: "sortie-line", type: "line", source: "sortie", filter: ["==",["get","kind"],"track"], layout: { visibility: "none", "line-cap":"round", "line-join":"round" }, paint: { "line-color": "#19e0ff", "line-width": 4.5 } },
+      { id: "sortie-wp", type: "circle", source: "sortie", filter: ["==",["get","kind"],"wp"], layout: { visibility: "none" }, paint: { "circle-radius": ["interpolate",["linear"],["zoom"],11,4,15,8], "circle-color": "#1669d8", "circle-stroke-color": "#fff", "circle-stroke-width": 2.5 } }
     ],
     sky: { "sky-color": "#7fb0d8", "horizon-color": "#e7d3a8", "fog-color": "#efe3c9", "sky-horizon-blend": 0.5, "horizon-fog-blend": 0.6, "fog-ground-blend": 0.18 }
   },
@@ -409,6 +421,32 @@ document.getElementById("t-lisiere").onchange=e=>vis(["lisiere"],e.target.checke
 document.getElementById("t-strava").onchange=e=>vis(["strava"],e.target.checked);
 document.getElementById("t-sent").onchange =e=>vis(["sentiers"],e.target.checked);
 document.getElementById("t-park").onchange =e=>vis(["parkings"],e.target.checked);
+// ── Sortie enregistrée : affichage + zoom ──
+const SORTIE_LAYERS=["sortie-cas","sortie-line","sortie-wp"];
+let sortieOn=false;
+async function showSortie(on){
+  sortieOn=on;
+  vis(SORTIE_LAYERS,on);
+  document.getElementById("sortie-btn").classList.toggle("on",on);
+  if(on){
+    // zoom sur le tracé
+    try{
+      const r=await fetch("sorties/ustaritz-famille.geojson"); const gj=await r.json();
+      const line=gj.features.find(f=>f.properties.kind==="track");
+      let minx=180,miny=90,maxx=-180,maxy=-90;
+      line.geometry.coordinates.forEach(c=>{minx=Math.min(minx,c[0]);miny=Math.min(miny,c[1]);maxx=Math.max(maxx,c[0]);maxy=Math.max(maxy,c[1]);});
+      map.fitBounds([[minx,miny],[maxx,maxy]],{padding:{top:90,bottom:90,left:window.innerWidth<760?30:430,right:90},pitch:40,duration:900});
+    }catch(e){}
+    if(window.innerWidth<760){const h=document.querySelector(".hero");if(h)h.classList.add("collapsed");const ht=document.getElementById("hero-toggle");}
+  }
+}
+document.getElementById("sortie-btn").onclick=()=>showSortie(!sortieOn);
+map.on("click","sortie-wp",(e)=>{
+  const p=e.features[0].properties;const c=e.features[0].geometry.coordinates;
+  new maplibregl.Popup().setLngLat(c).setHTML(`<b>${p.name}</b><br><span style="font-size:11px;opacity:.85">${(p.desc||"").replace(/</g,"&lt;")}</span>`).addTo(map);
+});
+map.on("mouseenter","sortie-wp",()=>map.getCanvas().style.cursor="pointer");
+map.on("mouseleave","sortie-wp",()=>map.getCanvas().style.cursor="");
 map.on("click","parkings",(e)=>{
   const p=e.features[0].properties;
   const [lng,lat]=e.features[0].geometry.coordinates;
