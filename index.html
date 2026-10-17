@@ -140,7 +140,7 @@ const map = new maplibregl.Map({
       expo: { type: "raster", tiles: ["https://cepes.tbrun.dev/expo/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
       foret: { type: "vector", url: "pmtiles://foret.pmtiles" },
       sentiers: { type: "vector", url: "pmtiles://sentiers.pmtiles" },
-      parkings: { type: "geojson", data: "parkings.geojson" },
+      parkings: { type: "geojson", data: "parkings.geojson", cluster: true, clusterMaxZoom: 13, clusterRadius: 40 },
       essence: { type: "raster", tiles: ["https://cepes.tbrun.dev/essence/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
       prime: { type: "raster", tiles: ["https://cepes.tbrun.dev/prime/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
       gbif: { type: "geojson", data: "gbif.geojson" }
@@ -168,9 +168,12 @@ const map = new maplibregl.Map({
         paint: { "circle-radius": 4, "circle-color": "#ffe08a", "circle-stroke-color": "#b9351a", "circle-stroke-width": 1.5 } },
       { id: "sentiers", type: "line", source: "sentiers", "source-layer": "sentiers", layout: { visibility: "none", "line-cap": "round" },
         paint: { "line-color": "#f6e3a8", "line-width": ["interpolate",["linear"],["zoom"],11,0.4,14,1.6], "line-opacity": 0.85, "line-dasharray": [2,1.5] } },
-      { id: "parkings", type: "circle", source: "parkings", layout: { visibility: "none" },
+      { id: "parkings-cluster", type: "circle", source: "parkings", filter: ["has","point_count"], layout: { visibility: "none" },
+        paint: { "circle-radius": ["step",["get","point_count"],12,10,17,50,22], "circle-color": "#b9733e", "circle-opacity": 0.82, "circle-stroke-color": "#fff", "circle-stroke-width": 1.5 } },
+      { id: "parkings-cluster-count", type: "symbol", source: "parkings", filter: ["has","point_count"], layout: { visibility: "none", "text-field": "{point_count_abbreviated}", "text-size": 11, "text-font": ["Open Sans Bold"] }, paint: { "text-color": "#fff" } },
+      { id: "parkings", type: "circle", source: "parkings", filter: ["!", ["has","point_count"]], layout: { visibility: "none" },
         paint: { "circle-radius": 5, "circle-color": "#b9733e", "circle-stroke-color": "#fff", "circle-stroke-width": 1.4 } },
-      { id: "parkings-p", type: "symbol", source: "parkings", layout: { visibility: "none", "text-field": "P", "text-size": 11, "text-font": ["Open Sans Bold"], "text-offset": [0,0.05] }, paint: { "text-color": "#fff" } }
+      { id: "parkings-p", type: "symbol", source: "parkings", filter: ["!", ["has","point_count"]], layout: { visibility: "none", "text-field": "P", "text-size": 11, "text-font": ["Open Sans Bold"], "text-offset": [0,0.05] }, paint: { "text-color": "#fff" } }
     ],
     sky: { "sky-color": "#7fb0d8", "horizon-color": "#e7d3a8", "fog-color": "#efe3c9", "sky-horizon-blend": 0.5, "horizon-fog-blend": 0.6, "fog-ground-blend": 0.18 }
   },
@@ -193,7 +196,16 @@ document.getElementById("t-gbif").onchange =e=>vis(["gbif-glow","gbif-pt"],e.tar
 document.getElementById("t-ess").onchange  =e=>{vis(["essence"],e.target.checked);document.getElementById("leg-ess").style.display=e.target.checked?"":"none";};
 document.getElementById("t-expo").onchange =e=>vis(["expo"],e.target.checked);
 document.getElementById("t-sent").onchange =e=>vis(["sentiers"],e.target.checked);
-document.getElementById("t-park").onchange =e=>vis(["parkings","parkings-p"],e.target.checked);
+document.getElementById("t-park").onchange =e=>vis(["parkings-cluster","parkings-cluster-count","parkings","parkings-p"],e.target.checked);
+map.on("click","parkings-cluster",(e)=>{
+  const id=e.features[0].properties.cluster_id;
+  map.getSource("parkings").getClusterExpansionZoom(id,(err,zoom)=>{
+    if(err) return;
+    map.flyTo({center:e.features[0].geometry.coordinates, zoom, duration:600});
+  });
+});
+map.on("mouseenter","parkings-cluster",()=>map.getCanvas().style.cursor="pointer");
+map.on("mouseleave","parkings-cluster",()=>map.getCanvas().style.cursor="");
 map.on("click","gbif-pt",(e)=>{const p=e.features[0].properties;
   new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<b>${p.species||"Boletus"}</b><br><span style="opacity:.65">trouvé ici${p.year?" · "+p.year:""}</span>`).addTo(map);});
 // Coins panel: list top score=3 parcels visible on screen
