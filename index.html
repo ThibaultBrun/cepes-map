@@ -811,8 +811,19 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   } else {
     conseil = `<div style="margin-top:10px;padding:8px 10px;border-radius:10px;background:rgba(143,179,207,.08);border:1px solid rgba(143,179,207,.22);font-size:10.5px;line-height:1.5"><span style="font-weight:700;color:#8fb3cf">💡 Conseil</span> — Hors fenêtre. Préparez vos spots à l'avance sur la carte (export GPX). Revenez après une bonne pluie.</div>`;
   }
+  let zonesHtml="";
+  if(Array.isArray(p.zones)&&p.zones.length){
+    const open=p.zones.filter(z=>z.score>=70).map(z=>z.name);
+    const dry=p.zones.filter(z=>z.score<40).map(z=>z.name);
+    zonesHtml=`<div style="margin-top:9px;padding-top:8px;border-top:1px solid var(--line);font-size:10.5px;line-height:1.5">`+
+      `<div style="font-weight:700;color:var(--gold);letter-spacing:.04em;margin-bottom:3px">📍 PAR SECTEUR</div>`+
+      (open.length?`<div><span style="color:#4fc37a;font-weight:700">● Ouvert</span> — ${open.join(", ")}</div>`:"")+
+      (dry.length?`<div style="opacity:.7"><span style="color:#8fb3cf;font-weight:700">● Sec</span> — ${dry.join(", ")}</div>`:"")+
+      (p.localized?`<div style="opacity:.6;font-style:italic;margin-top:3px">Pluie très localisée — vise les secteurs ouverts.</div>`:"")+
+      `</div>`;
+  }
   const el=document.getElementById("push");
-  el.innerHTML=`<div class="push-head"><div style="flex:1;min-width:0"><div class="t">🍄 Radar de poussée</div><div class="v">${dot}${p.verdict}</div></div><span class="push-chev">▾</span></div><div class="push-body"><div class="d">${bits.join(" · ")}</div>${sparkHtml}${chkHtml}${conseil}</div>`;
+  el.innerHTML=`<div class="push-head"><div style="flex:1;min-width:0"><div class="t">🍄 Radar de poussée</div><div class="v">${dot}${p.verdict}</div></div><span class="push-chev">▾</span></div><div class="push-body"><div class="d">${bits.join(" · ")}</div>${sparkHtml}${chkHtml}${zonesHtml}${conseil}</div>`;
   el.style.display="block"; el.style.borderColor=col+"55";
   const head=el.querySelector(".push-head");
   const setMini=(m)=>{el.classList.toggle("mini",m);const cv=el.querySelector(".push-chev");if(cv)cv.textContent=m?"▸":"▾";};
