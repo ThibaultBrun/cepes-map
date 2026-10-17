@@ -1,8 +1,9 @@
-const V = 'cepes-v2';
-// Précache : l'app + la sortie famille (dispo hors-ligne dans la forêt, sans réseau)
+const V = 'cepes-v3';
+// Précache : l'app + les sorties famille (dispo hors-ligne dans la forêt, sans réseau)
 const PRECACHE = [
   '/index.html', '/icon.svg', '/manifest.json',
   '/sorties/ustaritz-famille.geojson', '/sorties/ustaritz-famille.gpx',
+  '/sorties/espelette-famille.geojson', '/sorties/espelette-famille.gpx',
 ];
 
 self.addEventListener('install', e => {

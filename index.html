@@ -166,6 +166,7 @@
     cursor:pointer;font-family:inherit;transition:.2s;text-align:left}
   #pano-btn:hover{background:rgba(227,171,77,.22)}
   body.split #pano-btn{background:rgba(227,171,77,.28)}
+  #sorties-list{display:flex;flex-direction:column;gap:7px}
   .sortie-chip{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;
     background:rgba(25,224,255,.1);color:var(--cream);font-size:12px;font-weight:600;cursor:pointer;
     font-family:inherit;transition:.2s;text-align:left;line-height:1.3}
@@ -249,7 +250,7 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   <label class="row"><input type="checkbox" id="t-park"> 🅿️ Parkings</label>
   <div class="sep"></div>
   <div class="kick" style="margin-bottom:6px">🥾 Mes sorties</div>
-  <button id="sortie-btn" class="sortie-chip">🍄 Grande forêt d'Ustaritz — famille · 2,5 km <span style="opacity:.6">▸</span></button>
+  <div id="sorties-list"></div>
   <div class="sep"></div>
   <div class="leg"><span class="sw" style="background:#5c2e0c"></span> Chênes · châtaignier · hêtre <span style="opacity:.5;font-size:10px">(top)</span></div>
   <div class="leg"><span class="sw" style="background:#c07a3a"></span> Feuillus · pin maritime</div>
@@ -321,7 +322,7 @@ const map = new maplibregl.Map({
       gbif: { type: "geojson", data: "gbif.geojson" },
       strava: { type: "raster", tiles: ["https://cepes.tbrun.dev/strava/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
       lisiere: { type: "raster", tiles: ["https://cepes.tbrun.dev/lisiere/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
-      sortie: { type: "geojson", data: "sorties/ustaritz-famille.geojson" }
+      sortie: { type: "geojson", data: { type: "FeatureCollection", features: [] } }
     },
     layers: [
       { id: "ortho", type: "raster", source: "ortho" },
@@ -421,26 +422,40 @@ document.getElementById("t-lisiere").onchange=e=>vis(["lisiere"],e.target.checke
 document.getElementById("t-strava").onchange=e=>vis(["strava"],e.target.checked);
 document.getElementById("t-sent").onchange =e=>vis(["sentiers"],e.target.checked);
 document.getElementById("t-park").onchange =e=>vis(["parkings"],e.target.checked);
-// ── Sortie enregistrée : affichage + zoom ──
+// ── Sorties enregistrées (multi-itinéraires) : affichage + zoom ──
 const SORTIE_LAYERS=["sortie-cas","sortie-line","sortie-wp"];
-let sortieOn=false;
-async function showSortie(on){
-  sortieOn=on;
-  vis(SORTIE_LAYERS,on);
-  document.getElementById("sortie-btn").classList.toggle("on",on);
-  if(on){
-    // zoom sur le tracé
-    try{
-      const r=await fetch("sorties/ustaritz-famille.geojson"); const gj=await r.json();
-      const line=gj.features.find(f=>f.properties.kind==="track");
-      let minx=180,miny=90,maxx=-180,maxy=-90;
-      line.geometry.coordinates.forEach(c=>{minx=Math.min(minx,c[0]);miny=Math.min(miny,c[1]);maxx=Math.max(maxx,c[0]);maxy=Math.max(maxy,c[1]);});
-      map.fitBounds([[minx,miny],[maxx,maxy]],{padding:{top:90,bottom:90,left:window.innerWidth<760?30:430,right:90},pitch:40,duration:900});
-    }catch(e){}
-    if(window.innerWidth<760){const h=document.querySelector(".hero");if(h)h.classList.add("collapsed");const ht=document.getElementById("hero-toggle");}
+const SORTIES=[
+  {id:"ustaritz", label:"🍄 Grande forêt d'Ustaritz — famille · 2,5 km · doux", file:"sorties/ustaritz-famille.geojson"},
+  {id:"espelette", label:"🌶️ Chênaie d'Espelette (Souraïde) — famille · 2,5 km · vallonné", file:"sorties/espelette-famille.geojson"},
+];
+let activeSortie=null;
+async function showSortie(s){
+  if(activeSortie===s.id){ // re-clic => masquer
+    vis(SORTIE_LAYERS,false); map.getSource("sortie").setData({type:"FeatureCollection",features:[]});
+    activeSortie=null; renderSortieBtns(); return;
   }
+  try{
+    const gj=await (await fetch(s.file)).json();
+    map.getSource("sortie").setData(gj);
+    vis(SORTIE_LAYERS,true); activeSortie=s.id; renderSortieBtns();
+    const line=gj.features.find(f=>f.properties.kind==="track");
+    let minx=180,miny=90,maxx=-180,maxy=-90;
+    line.geometry.coordinates.forEach(c=>{minx=Math.min(minx,c[0]);miny=Math.min(miny,c[1]);maxx=Math.max(maxx,c[0]);maxy=Math.max(maxy,c[1]);});
+    map.fitBounds([[minx,miny],[maxx,maxy]],{padding:{top:90,bottom:90,left:window.innerWidth<760?30:430,right:90},pitch:40,duration:900});
+    if(window.innerWidth<760){const h=document.querySelector(".hero");if(h)h.classList.add("collapsed");}
+  }catch(e){}
 }
-document.getElementById("sortie-btn").onclick=()=>showSortie(!sortieOn);
+function renderSortieBtns(){
+  const box=document.getElementById("sorties-list"); box.innerHTML="";
+  SORTIES.forEach(s=>{
+    const b=document.createElement("button");
+    b.className="sortie-chip"+(activeSortie===s.id?" on":"");
+    b.innerHTML=s.label+' <span style="opacity:.6">'+(activeSortie===s.id?"▾":"▸")+'</span>';
+    b.onclick=()=>showSortie(s);
+    box.appendChild(b);
+  });
+}
+renderSortieBtns();
 map.on("click","sortie-wp",(e)=>{
   const p=e.features[0].properties;const c=e.features[0].geometry.coordinates;
   new maplibregl.Popup().setLngLat(c).setHTML(`<b>${p.name}</b><br><span style="font-size:11px;opacity:.85">${(p.desc||"").replace(/</g,"&lt;")}</span>`).addTo(map);
