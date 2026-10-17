@@ -650,6 +650,34 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
     ${chkRow("📅","Saison :",saison)}
     ${chkRow("🔮","Fenêtre future :",futur)}
   </div>`;
+  // Phénologie saisonnière (Sep→Nov, 11 semaines)
+  {
+    const PHENO=[
+      {lbl:"S1",p:1},{lbl:"S2",p:2},{lbl:"S3",p:3},{lbl:"S4",p:5},
+      {lbl:"O1",p:7},{lbl:"O2",p:9},{lbl:"O3",p:10},{lbl:"O4",p:9},
+      {lbl:"N1",p:7},{lbl:"N2",p:5},{lbl:"N3",p:3}
+    ];
+    const pNow=new Date();
+    const sep1=new Date(pNow.getFullYear(),8,1);
+    const curW=Math.max(0,Math.min(10,Math.floor((pNow-sep1)/604800000)));
+    function pc(p){return p>=9?"#e3ab4d":p>=7?"#c4821a":p>=5?"#906030":"#3d5070";}
+    const bars=PHENO.map((w,i)=>{
+      const isc=i===curW;
+      const h=Math.max(4,Math.round(w.p*3.2));
+      const col=pc(w.p);
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;position:relative">
+        <div style="font-size:8px;line-height:1;color:${isc?"#e3ab4d":"transparent"}">▾</div>
+        <div style="width:100%;height:${h}px;border-radius:3px 3px 0 0;background:${col};${isc?"outline:1px solid #e3ab4d;box-shadow:0 0 7px "+col+"99":""};min-height:3px"></div>
+        <div style="font-size:7.5px;color:${isc?"#e3ab4d":"rgba(244,234,214,.45)"};font-weight:${isc?700:400};margin-top:2px">${w.lbl}</div>
+      </div>`;
+    }).join("");
+    const phenoHtml=`<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--line)">
+      <div style="font-size:8.5px;opacity:.45;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">Phénologie · Pays Basque</div>
+      <div style="display:flex;align-items:flex-end;gap:2px;height:46px;padding-top:10px">${bars}</div>
+      <div style="display:flex;justify-content:space-between;font-size:8px;opacity:.35;margin-top:1px"><span>Septembre</span><span>Octobre</span><span>Novembre</span></div>
+    </div>`;
+    sparkHtml += phenoHtml;
+  }
   // Conseil de prospection personnalisé
   let conseil = "";
   if(p.score>=75){
