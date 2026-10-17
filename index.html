@@ -353,8 +353,9 @@ const map = new maplibregl.Map({
         paint: { "circle-radius": 5, "circle-color": ["match",["get","species"],"Boletus edulis","#f5c842","Boletus aereus","#5c2d00","Boletus pinophilus","#c0430c","Boletus reticulatus","#d4a558","#ffe08a"], "circle-stroke-color": ["match",["get","species"],"Boletus edulis","#b9351a","Boletus aereus","#ff9944","Boletus pinophilus","#ff9944","Boletus reticulatus","#a07020","#b9351a"], "circle-stroke-width": 1.8 } },
       { id: "sentiers", type: "line", source: "sentiers", "source-layer": "sentiers", layout: { visibility: "none", "line-cap": "round" },
         paint: { "line-color": "#f6e3a8", "line-width": ["interpolate",["linear"],["zoom"],11,0.4,14,1.6], "line-opacity": 0.85, "line-dasharray": [2,1.5] } },
-      { id: "parkings", type: "circle", source: "parkings", layout: { visibility: "none" },
-        paint: { "circle-radius": ["interpolate",["linear"],["zoom"], 9,2.5, 12,4.5, 15,7], "circle-color": "#2f80ed", "circle-opacity": 0.92, "circle-stroke-color": "#fff", "circle-stroke-width": 1.3 } }
+      { id: "parkings", type: "symbol", source: "parkings", layout: { visibility: "none",
+        "icon-image": "pk-icon", "icon-allow-overlap": true,
+        "icon-size": ["interpolate",["linear"],["zoom"], 9,0.42, 12,0.62, 15,0.9, 17,1.1] } }
     ],
     sky: { "sky-color": "#7fb0d8", "horizon-color": "#e7d3a8", "fog-color": "#efe3c9", "sky-horizon-blend": 0.5, "horizon-fog-blend": 0.6, "fog-ground-blend": 0.18 }
   },
@@ -362,7 +363,21 @@ const map = new maplibregl.Map({
 });
 map.addControl(new maplibregl.NavigationControl({visualizePitch:true}), "bottom-right");
 map.addControl(new maplibregl.ScaleControl({unit:"metric"}));
+function makeParkingIcon(){
+  const s = 56, pad = 6, r = 12, c = document.createElement("canvas");
+  c.width = c.height = s; const x = c.getContext("2d");
+  const w = s - 2*pad, h = s - 2*pad;
+  const rr = (X,Y,W,H,R) => { x.beginPath(); x.moveTo(X+R,Y); x.arcTo(X+W,Y,X+W,Y+H,R); x.arcTo(X+W,Y+H,X,Y+H,R); x.arcTo(X,Y+H,X,Y,R); x.arcTo(X,Y,X+W,Y,R); x.closePath(); };
+  x.shadowColor = "rgba(0,0,0,.45)"; x.shadowBlur = 4; x.shadowOffsetY = 1;
+  x.fillStyle = "#1669d8"; rr(pad,pad,w,h,r); x.fill();
+  x.shadowColor = "transparent";
+  x.lineWidth = 3.5; x.strokeStyle = "#fff"; rr(pad,pad,w,h,r); x.stroke();
+  x.fillStyle = "#fff"; x.font = "bold 30px Inter, Arial, sans-serif"; x.textAlign = "center"; x.textBaseline = "middle";
+  x.fillText("P", s/2, s/2 + 1);
+  return x.getImageData(0,0,s,s);
+}
 map.on("load", () => {
+  if (!map.hasImage("pk-icon")) map.addImage("pk-icon", makeParkingIcon(), { pixelRatio: 2.4 });
   map.setTerrain({ source: "dem", exaggeration: 1.45 });
   map.setPaintProperty("gbif-pt","circle-opacity",["step",["coalesce",["to-number",["get","year"]],2000],0.35,2005,0.55,2015,0.8,2020,1.0]);
   map.setPaintProperty("gbif-glow","circle-opacity",["step",["coalesce",["to-number",["get","year"]],2000],0.18,2010,0.35,2020,0.55]);
