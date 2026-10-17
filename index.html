@@ -48,7 +48,18 @@
   .maplibregl-ctrl-group{background:var(--wood)!important;border:1px solid var(--line)!important}
   .maplibregl-ctrl-group button+button{border-top:1px solid var(--line)!important}
   .maplibregl-ctrl button .maplibregl-ctrl-icon{filter:invert(.85) sepia(.3)}
-  @media(max-width:560px){.hero{max-width:min(78vw,270px)} #push{max-width:min(82vw,300px)}}
+  #coins{top:14px;right:14px;width:210px;max-height:60vh;padding:13px 14px;display:flex;flex-direction:column}
+  #coins-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;cursor:pointer;user-select:none}
+  #coins-head .kick{margin:0}
+  #coins-toggle{font-size:18px;line-height:1;color:var(--gold);transition:.2s}
+  #coins-list{overflow-y:auto;flex:1;scrollbar-width:thin;scrollbar-color:rgba(224,168,74,.25) transparent}
+  .coin-item{padding:7px 0;border-bottom:1px solid var(--line);cursor:pointer;transition:.15s}
+  .coin-item:hover{background:rgba(244,234,214,.07);border-radius:6px;padding-left:4px}
+  .coin-item:last-child{border-bottom:none}
+  .coin-num{color:var(--gold);font-weight:700;margin-right:5px;font-size:12px}
+  .coin-ess{font-size:12.5px;font-weight:600}
+  .coin-sub{font-size:10px;opacity:.55;line-height:1.35}
+  @media(max-width:560px){.hero{max-width:min(78vw,270px)} #push{max-width:min(82vw,300px)} #coins{display:none}}
 </style>
 </head>
 <body>
@@ -59,6 +70,7 @@
   <div class="sub">Pays Basque · Landes — 50 km autour de Bayonne</div>
   <label class="row"><input type="checkbox" id="t-foret" checked> 🌳 Potentiel forêt</label>
   <label class="row"><input type="checkbox" id="t-prime" checked> ✨ Spots prime (sud ∩ forêt)</label>
+  <label class="row"><input type="checkbox" id="t-best" checked> 🥇 Meilleurs coins (cèpe de Bordeaux)</label>
   <label class="row"><input type="checkbox" id="t-gbif"> 🍄 Trouvailles réelles (GBIF)</label>
   <label class="row"><input type="checkbox" id="t-expo"> ☀️ Versants sud (large)</label>
   <label class="row"><input type="checkbox" id="t-sent"> 🥾 Sentiers &amp; pistes</label>
@@ -68,10 +80,18 @@
   <div class="leg"><span class="sw" style="background:#7cae52"></span> Feuillus · pin maritime</div>
   <div class="leg"><span class="sw" style="background:#cfa24a"></span> Autres conifères</div>
   <div class="leg"><span class="sw" style="background:linear-gradient(90deg,#ffd76a,#b9733e)"></span> ✨ Spots prime (versant sud ∩ forêt)</div>
+  <div class="leg"><span class="sw" style="background:#f5c842;border-color:#d4a012"></span> 🥇 Meilleurs coins (chêne/châtaignier/hêtre)</div>
   <div class="leg"><span class="sw" style="background:#ffe08a;border-color:#b9351a"></span> 🍄 Trouvailles réelles (GBIF)</div>
   <div class="note">🎯 Vise les <b>spots en or</b> (versant sud chaud + bonne essence), ~10 j après une bonne pluie. Les points 🍄 sont de <b>vraies récoltes</b> déclarées (validation). Clique une parcelle ou un point pour le détail.</div>
 </div>
 <div class="card" id="push"></div>
+<div class="card" id="coins">
+  <div id="coins-head">
+    <div class="kick">🥇 Meilleurs coins visibles</div>
+    <span id="coins-toggle">▾</span>
+  </div>
+  <div id="coins-list"><div style="opacity:.5;font-size:11.5px;padding:4px 0">Chargement…</div></div>
+</div>
 <script>
 const proto = new pmtiles.Protocol();
 maplibregl.addProtocol("pmtiles", proto.tile);
@@ -99,6 +119,12 @@ const map = new maplibregl.Map({
         paint: { "fill-color": ["match", ["get","score"], 3, "#2f8f4e", 2, "#7cae52", 1, "#cfa24a", "#888"], "fill-opacity": 0.42 } },
       { id: "foret-line", type: "line", source: "foret", "source-layer": "foret",
         paint: { "line-color": ["match", ["get","score"], 3, "#49c173", 2, "#a5d66a", "#cfa24a"], "line-width": 0.5, "line-opacity": 0.4 } },
+      { id: "foret-best", type: "fill", source: "foret", "source-layer": "foret",
+        filter: ["==", ["get","score"], 3],
+        paint: { "fill-color": "#f5c842", "fill-opacity": 0.22 } },
+      { id: "foret-best-line", type: "line", source: "foret", "source-layer": "foret",
+        filter: ["==", ["get","score"], 3],
+        paint: { "line-color": "#f5c842", "line-width": 1.4, "line-opacity": 0.85 } },
       { id: "expo", type: "raster", source: "expo", layout: { visibility: "none" }, paint: { "raster-opacity": 0.7 } },
       { id: "prime", type: "raster", source: "prime", paint: { "raster-opacity": 0.85 } },
       { id: "gbif-glow", type: "circle", source: "gbif", layout: { visibility: "none" },
@@ -118,7 +144,7 @@ const map = new maplibregl.Map({
 map.addControl(new maplibregl.NavigationControl({visualizePitch:true}), "bottom-right");
 map.addControl(new maplibregl.GeolocateControl({positionOptions:{enableHighAccuracy:true},trackUserLocation:true}), "bottom-right");
 map.addControl(new maplibregl.ScaleControl({unit:"metric"}));
-map.on("load", () => map.setTerrain({ source: "dem", exaggeration: 1.45 }));
+map.on("load", () => { map.setTerrain({ source: "dem", exaggeration: 1.45 }); setTimeout(updateCoins, 900); });
 const LABEL={3:"Top — tête de nègre / cèpe de Bordeaux",2:"Favorable — cèpe des pins",1:"Possible"};
 map.on("click","foret",(e)=>{const p=e.features[0].properties;
   new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<b>${LABEL[p.score]||"—"}</b><br>${p.essence||""}<br><span style="opacity:.6">${p.tfv||""}</span>`).addTo(map);});
@@ -127,12 +153,67 @@ map.on("mouseleave","foret",()=>map.getCanvas().style.cursor="");
 const vis=(ids,on)=>ids.forEach(id=>map.setLayoutProperty(id,"visibility",on?"visible":"none"));
 document.getElementById("t-foret").onchange=e=>vis(["foret","foret-line"],e.target.checked);
 document.getElementById("t-prime").onchange=e=>vis(["prime"],e.target.checked);
+document.getElementById("t-best").onchange=e=>{vis(["foret-best","foret-best-line"],e.target.checked);document.getElementById("coins").style.display=e.target.checked?"flex":"none";};
 document.getElementById("t-gbif").onchange =e=>vis(["gbif-glow","gbif-pt"],e.target.checked);
 document.getElementById("t-expo").onchange =e=>vis(["expo"],e.target.checked);
 document.getElementById("t-sent").onchange =e=>vis(["sentiers"],e.target.checked);
 document.getElementById("t-park").onchange =e=>vis(["parkings","parkings-p"],e.target.checked);
 map.on("click","gbif-pt",(e)=>{const p=e.features[0].properties;
   new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<b>${p.species||"Boletus"}</b><br><span style="opacity:.65">trouvé ici${p.year?" · "+p.year:""}</span>`).addTo(map);});
+// Coins panel: list top score=3 parcels visible on screen
+let _coinsOpen = true;
+document.getElementById("coins-head").onclick = () => {
+  _coinsOpen = !_coinsOpen;
+  document.getElementById("coins-list").style.display = _coinsOpen ? "" : "none";
+  document.getElementById("coins-toggle").textContent = _coinsOpen ? "▾" : "▸";
+};
+function centroid(geom) {
+  const flat = (geom.type==="MultiPolygon"?geom.coordinates.flat(2):geom.coordinates.flat(1));
+  if(!flat.length) return null;
+  let sx=0,sy=0,n=flat.length;
+  flat.forEach(([x,y])=>{sx+=x;sy+=y;});
+  return [sx/n,sy/n];
+}
+function bboxArea(geom) {
+  const flat = (geom.type==="MultiPolygon"?geom.coordinates.flat(2):geom.coordinates.flat(1));
+  if(!flat.length) return 0;
+  const xs=flat.map(c=>c[0]),ys=flat.map(c=>c[1]);
+  return (Math.max(...xs)-Math.min(...xs))*(Math.max(...ys)-Math.min(...ys));
+}
+function updateCoins() {
+  const list = document.getElementById("coins-list");
+  if(!_coinsOpen) return;
+  const feats = map.queryRenderedFeatures({layers:["foret","foret-best"]}).filter(f=>f.properties&&f.properties.score===3);
+  const seen = new Set(); const items = [];
+  for(const f of feats) {
+    const c = centroid(f.geometry); if(!c) continue;
+    const key = `${c[0].toFixed(3)},${c[1].toFixed(3)}`;
+    if(seen.has(key)) continue; seen.add(key);
+    items.push({ess:f.properties.essence||"—",tfv:f.properties.tfv||"",cx:c[0],cy:c[1],area:bboxArea(f.geometry)});
+  }
+  items.sort((a,b)=>b.area-a.area);
+  const top = items.slice(0,7);
+  if(!top.length){
+    list.innerHTML="<div style='opacity:.5;font-size:11.5px;padding:4px 0'>Zoomez sur la carte<br>pour voir les meilleurs coins</div>";
+    return;
+  }
+  list.innerHTML = top.map((it,i)=>`<div class="coin-item" data-cx="${it.cx}" data-cy="${it.cy}">
+    <span class="coin-num">${i+1}</span><span class="coin-ess">${it.ess}</span>
+    ${it.tfv?`<div class="coin-sub">${it.tfv}</div>`:""}
+  </div>`).join("");
+  list.querySelectorAll(".coin-item").forEach(el=>{
+    el.onclick=()=>{
+      const cx=+el.dataset.cx, cy=+el.dataset.cy;
+      map.flyTo({center:[cx,cy],zoom:Math.max(map.getZoom(),13.5),pitch:55,duration:1100});
+      new maplibregl.Popup().setLngLat([cx,cy])
+        .setHTML(`<b>🥇 Top cèpes</b><br>${el.querySelector(".coin-ess").textContent}`).addTo(map);
+    };
+  });
+}
+map.on("moveend", updateCoins);
+map.on("idle", ()=>{if(!_coinsUpdated){_coinsUpdated=true;updateCoins();}});
+let _coinsUpdated=false;
+
 fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   const col = p.score>=85?"#49c173": p.score>=60?"#9acd32": p.score>=35?"#e3ab4d":"#8fb3cf";
   const dot = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${col};box-shadow:0 0 12px ${col};margin-right:8px;vertical-align:middle"></span>`;
