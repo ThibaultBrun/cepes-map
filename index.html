@@ -375,6 +375,7 @@ const map = new maplibregl.Map({
   center: [-1.49, 43.33], zoom: 11.3, pitch: 62, bearing: -18
 });
 map.addControl(new maplibregl.NavigationControl({visualizePitch:true}), "bottom-right");
+map.addControl(new maplibregl.GeolocateControl({positionOptions:{enableHighAccuracy:true},trackUserLocation:true,showUserHeading:true}), "bottom-right");
 map.addControl(new maplibregl.ScaleControl({unit:"metric"}));
 function makeParkingIcon(){
   const s = 56, pad = 6, r = 12, c = document.createElement("canvas");

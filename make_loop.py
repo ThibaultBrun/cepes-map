@@ -5,7 +5,7 @@ import json, math, heapq, sys
 def dk(a,b): return math.hypot((a[0]-b[0])*math.cos(math.radians(43.4))*111.32,(a[1]-b[1])*111.32)
 PK=(float(sys.argv[1]), float(sys.argv[2]))
 TARGET=float(sys.argv[3]) if len(sys.argv)>3 else 2.5
-S=[f['geometry']['coordinates'] for f in json.load(open('/srv/www/cepes/sentiers.geojson'))['features']]
+S=[f['geometry']['coordinates'] for f in json.load(open(sys.argv[4] if len(sys.argv)>4 else '/srv/www/cepes/sentiers.geojson'))['features']]
 segs=[cs for cs in S if any(dk(PK,c)<TARGET*0.8 for c in cs[::2])]
 def key(c): return (round(c[0],4),round(c[1],4))
 adj={};nodes={}
@@ -20,7 +20,7 @@ nk=list(nodes)
 for i in range(len(nk)):
     for j in range(i+1,len(nk)):
         d=dk(nodes[nk[i]],nodes[nk[j]])
-        if 0<d<0.03:adj.setdefault(nk[i],[]).append((nk[j],d));adj.setdefault(nk[j],[]).append((nk[i],d))
+        if 0<d<0.05:adj.setdefault(nk[i],[]).append((nk[j],d));adj.setdefault(nk[j],[]).append((nk[i],d))
 start=min(nodes,key=lambda k:dk(PK,nodes[k]))
 def dij(src,pen=set(),pf=4):
     dist={src:0};prev={};pq=[(0,src)]
