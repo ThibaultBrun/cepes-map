@@ -82,6 +82,11 @@
   .coin-num{color:var(--gold);font-weight:700;margin-right:5px;font-size:12px}
   .coin-ess{font-size:12.5px;font-weight:600}
   .coin-sub{font-size:10px;opacity:.55;line-height:1.35}
+  #zone-stats{position:absolute;bottom:64px;left:50%;transform:translateX(-50%);z-index:8;
+    background:rgba(28,18,8,.82);border:1px solid rgba(224,168,74,.28);backdrop-filter:blur(8px);
+    border-radius:20px;padding:5px 15px;font-size:11px;color:var(--cream);white-space:nowrap;
+    pointer-events:none;transition:opacity .4s;opacity:0;letter-spacing:.02em}
+  #zone-stats.vis{opacity:1}
   #loc-btn{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:10;
     background:var(--wood);border:1px solid var(--line);border-radius:24px;
     color:var(--cream);font-size:13px;font-family:"Inter",sans-serif;font-weight:600;
@@ -178,6 +183,7 @@
   <div class="note">🎯 Vise les <b>spots en or</b> (versant sud chaud + bonne essence), ~10 j après une bonne pluie. Les points 🍄 sont de <b>vraies récoltes</b> déclarées (validation). Clique une parcelle ou un point pour le détail.</div>
   <button id="install-btn" onclick="window._pwaPrompt&&window._pwaPrompt.prompt()">📲 Installer l'app sur mon téléphone</button>
 </div>
+<div id="zone-stats"></div>
 <div class="card" id="push"></div>
 <div class="card" id="coins">
   <div id="coins-head">
@@ -370,6 +376,40 @@ function updateCoins() {
 map.on("moveend", updateCoins);
 map.on("idle", ()=>{if(!_coinsUpdated){_coinsUpdated=true;updateCoins();}});
 let _coinsUpdated=false;
+// Zone stats pill
+let _zoneTimer;
+function updateZoneStats(){
+  clearTimeout(_zoneTimer);
+  _zoneTimer = setTimeout(()=>{
+    const el = document.getElementById("zone-stats");
+    if(!el) return;
+    // Spots prime (score 3)
+    const primFeats = map.queryRenderedFeatures({layers:["foret-best"]});
+    const seen=new Set();
+    primFeats.forEach(f=>{const c=centroid(f.geometry);if(c)seen.add(`${c[0].toFixed(3)},${c[1].toFixed(3)}`);});
+    const nSpots = seen.size;
+    // GBIF obs (only if layer visible)
+    const gbifVis = map.getLayoutProperty("gbif-pt","visibility")==="visible";
+    const nGbif = gbifVis ? map.queryRenderedFeatures({layers:["gbif-pt"]}).length : 0;
+    // Dominant essence
+    const essCnt={};
+    map.queryRenderedFeatures({layers:["foret"]}).forEach(f=>{
+      const e=(f.properties&&f.properties.essence)||"";
+      const short=e.split(" ")[0]; if(short&&short.length>2) essCnt[short]=(essCnt[short]||0)+1;
+    });
+    const domArr=Object.entries(essCnt).sort((a,b)=>b[1]-a[1]);
+    const domEss=domArr[0]?domArr[0][0]:null;
+    if(!nSpots&&!nGbif&&!domEss){el.classList.remove("vis");return;}
+    const parts=[];
+    if(nSpots) parts.push(`${nSpots} spots 🥇`);
+    if(nGbif) parts.push(`${nGbif} 🍄 réelles`);
+    if(domEss) parts.push(`${domEss} dominant`);
+    el.textContent=parts.join(" · ");
+    el.classList.add("vis");
+  },600);
+}
+map.on("moveend", updateZoneStats);
+map.on("idle", updateZoneStats);
 // GPX export
 let _gpxItems=[];
 const gpxBtn = document.getElementById("gpx-btn");

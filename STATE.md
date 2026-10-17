@@ -44,3 +44,5 @@
 - 2026-10-18 03:32 — Passe 12 : 📲 PWA installable — manifest.json (name/icons/shortcuts), SW cache-first, icône champignon SVG champêtre, bouton "Installer" dans le hero (visible si beforeinstallprompt), apple-mobile-web-app meta tags.
 - 2026-10-18 03:49 — Passe 13 : 🍄 Espèces GBIF colorées — 4 couleurs data-driven (edulis or/aereus brun/pinophilus rouille/reticulatus ocre), glow matching, légende 4 espèces, popup enrichi avec nom FR + latin + indicateur couleur.
 - 2026-10-18 04:29 — Passe 14 : 🎴 Fiches espèces GBIF enrichies — SVG champignon par espèce (forme/couleur chapeau distincts), description habitat + caractéristiques, popup restructurée en fiche ; + 💡 conseil de prospection dans le radar push (4 niveaux, conseils concrets).
+- 2026-10-18 04:52 — Passe 15 : 🎯 Tooltip léger au survol des parcelles forêt (score + essence, suit le curseur) + 🗺️ lien "Y aller →" Google Maps dans le popup de chaque parking individuel.
+- 2026-10-18 05:55 — Passe 16 : 📊 Pill "stats de zone" en temps réel (bottom-center) — spots 🥇 + obs GBIF + essence dominante dans la vue courante, mis à jour sur moveend (600ms debounce, disparaît si zone vide).
