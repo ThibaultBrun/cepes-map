@@ -65,11 +65,31 @@
   .coin-num{color:var(--gold);font-weight:700;margin-right:5px;font-size:12px}
   .coin-ess{font-size:12.5px;font-weight:600}
   .coin-sub{font-size:10px;opacity:.55;line-height:1.35}
-  @media(max-width:560px){.hero{max-width:min(78vw,270px)} #push{max-width:min(82vw,300px)} #coins{display:none}}
+  #loc-btn{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:10;
+    background:var(--wood);border:1px solid var(--line);border-radius:24px;
+    color:var(--cream);font-size:13px;font-family:"Inter",sans-serif;font-weight:600;
+    padding:9px 18px;cursor:pointer;display:flex;align-items:center;gap:7px;
+    box-shadow:0 4px 18px rgba(0,0,0,.45);transition:.2s;white-space:nowrap}
+  #loc-btn:hover{background:rgba(40,28,16,.95);border-color:var(--gold)}
+  #loc-btn.locating{border-color:var(--gold);color:var(--gold)}
+  #hero-toggle{display:none;position:absolute;top:14px;right:14px;z-index:10;
+    background:var(--wood);border:1px solid var(--line);border-radius:12px;
+    width:38px;height:38px;cursor:pointer;font-size:18px;
+    align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+  @media(max-width:560px){
+    .hero{max-width:calc(100vw - 28px);transition:.25s}
+    .hero.collapsed{max-height:54px;overflow:hidden}
+    #push{max-width:calc(100vw - 28px);bottom:58px}
+    #coins{display:none}
+    #hero-toggle{display:flex}
+    #loc-btn{bottom:14px;font-size:12px;padding:8px 14px}
+  }
 </style>
 </head>
 <body>
 <div id="map"></div>
+<button id="hero-toggle" title="Afficher/masquer les options">☰</button>
+<button id="loc-btn" title="Centrer sur ma position">📍 Où je suis</button>
 <div class="card hero">
   <div class="kick">Carte de prospection</div>
   <h1>Cèpes</h1>
@@ -229,6 +249,28 @@ function updateCoins() {
 map.on("moveend", updateCoins);
 map.on("idle", ()=>{if(!_coinsUpdated){_coinsUpdated=true;updateCoins();}});
 let _coinsUpdated=false;
+// Bouton "centrer sur moi"
+const locBtn = document.getElementById("loc-btn");
+locBtn.onclick = () => {
+  locBtn.classList.add("locating");
+  locBtn.textContent = "⏳ Localisation…";
+  navigator.geolocation.getCurrentPosition(pos => {
+    map.flyTo({center:[pos.coords.longitude, pos.coords.latitude], zoom:14, pitch:55, duration:1200});
+    locBtn.classList.remove("locating");
+    locBtn.innerHTML = "📍 Où je suis";
+  }, () => {
+    locBtn.classList.remove("locating");
+    locBtn.innerHTML = "📍 Où je suis";
+    alert("Géolocalisation refusée ou indisponible.");
+  }, {enableHighAccuracy:true, timeout:10000});
+};
+// Toggle hero panel (mobile)
+const heroToggle = document.getElementById("hero-toggle");
+const heroCard = document.querySelector(".card.hero");
+heroToggle.onclick = () => {
+  const collapsed = heroCard.classList.toggle("collapsed");
+  heroToggle.textContent = collapsed ? "⊕" : "☰";
+};
 
 fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   const col = p.score>=85?"#49c173": p.score>=60?"#9acd32": p.score>=35?"#e3ab4d":"#8fb3cf";
