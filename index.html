@@ -58,6 +58,10 @@
   #coins-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;cursor:pointer;user-select:none}
   #coins-head .kick{margin:0}
   #coins-toggle{font-size:18px;line-height:1;color:var(--gold);transition:.2s}
+  #gpx-btn{margin-top:9px;width:100%;background:rgba(224,168,74,.12);border:1px solid var(--line);
+    border-radius:10px;color:var(--gold);font-size:11.5px;font-weight:600;padding:6px 0;
+    cursor:pointer;letter-spacing:.04em;transition:.18s;display:none}
+  #gpx-btn:hover{background:rgba(224,168,74,.22);border-color:var(--gold)}
   #coins-list{overflow-y:auto;flex:1;scrollbar-width:thin;scrollbar-color:rgba(224,168,74,.25) transparent}
   .coin-item{padding:7px 0;border-bottom:1px solid var(--line);cursor:pointer;transition:.15s}
   .coin-item:hover{background:rgba(244,234,214,.07);border-radius:6px;padding-left:4px}
@@ -131,6 +135,7 @@
     <span id="coins-toggle">▾</span>
   </div>
   <div id="coins-list"><div style="opacity:.5;font-size:11.5px;padding:4px 0">Chargement…</div></div>
+  <button id="gpx-btn" title="Télécharger les spots en GPX pour votre GPS">📥 Exporter en GPX</button>
 </div>
 <script>
 const proto = new pmtiles.Protocol();
@@ -248,6 +253,8 @@ function updateCoins() {
   }
   items.sort((a,b)=>b.area-a.area);
   const top = items.slice(0,7);
+  _gpxItems = top;
+  gpxBtn.style.display = top.length ? "block" : "none";
   if(!top.length){
     list.innerHTML="<div style='opacity:.5;font-size:11.5px;padding:4px 0'>Zoomez sur la carte<br>pour voir les meilleurs coins</div>";
     return;
@@ -268,6 +275,23 @@ function updateCoins() {
 map.on("moveend", updateCoins);
 map.on("idle", ()=>{if(!_coinsUpdated){_coinsUpdated=true;updateCoins();}});
 let _coinsUpdated=false;
+// GPX export
+let _gpxItems=[];
+const gpxBtn = document.getElementById("gpx-btn");
+gpxBtn.onclick = () => {
+  if(!_gpxItems.length) return;
+  const ts = new Date().toISOString().slice(0,19)+"Z";
+  const wpts = _gpxItems.map((it,i)=>{
+    const nm = (it.ess||"Spot cèpes").replace(/&/g,"&amp;").replace(/</g,"&lt;");
+    const desc = (it.tfv||"").replace(/&/g,"&amp;").replace(/</g,"&lt;");
+    return `  <wpt lat="${it.cy.toFixed(6)}" lon="${it.cx.toFixed(6)}">\n    <name>${i+1}. ${nm}</name>\n    <desc>${desc}</desc>\n    <sym>City (Large)</sym>\n  </wpt>`;
+  }).join("\n");
+  const gpx=`<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="cepes.tbrun.dev" xmlns="http://www.topografix.com/GPX/1/1">\n  <metadata><name>Spots cèpes – Pays Basque</name><time>${ts}</time></metadata>\n${wpts}\n</gpx>`;
+  const a=document.createElement("a");
+  a.href="data:application/gpx+xml;charset=utf-8,"+encodeURIComponent(gpx);
+  a.download=`cepes-spots-${ts.slice(0,10)}.gpx`;
+  a.click();
+};
 // Bouton "centrer sur moi"
 const locBtn = document.getElementById("loc-btn");
 locBtn.onclick = () => {

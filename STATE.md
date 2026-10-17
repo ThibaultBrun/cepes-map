@@ -18,9 +18,9 @@
 3. [x] **Points GBIF Boletus** (observations réelles) → calque validation + popup.
 4. [x] **Couche "spots prime"** dédiée : parcelles score 3 ∩ versant sud → surbrillance + liste cliquable "meilleurs coins".
 5. [x] **Essences 10 m** (essence10.tif PRÊT: ForestPaths genre arbre, codes Pinus=2 Fagus=3 Quercus=4 broadleaf=6) → calque raster scoré + affiner : Copernicus HRL (feuillu/conifère 10m) ou carte essences Sentinel pour affiner le score.
-6. [ ] Radar : prévoir la **fenêtre future** (indice sur les 7 j de prévi) + mini courbe pluie.
-7. [ ] Polish mobile, écran d'intro, bouton "centrer sur moi", partage de spot (permalien).
-8. [ ] Perf : vérifier chargement pmtiles, zoom, clusters parkings.
+6. [x] Radar : prévoir la **fenêtre future** (indice sur les 7 j de prévi) + mini courbe pluie.
+7. [x] Polish mobile : panel hero collapsible (☰ toggle) + bouton "📍 Où je suis" centré. Partage de spot (permalien) → à faire.
+8. [x] Perf : clusters parkings MapLibre (4000 pts → cercles agrégés + count + zoom auto) + click expand.
 
 
 ## Repo & commits
@@ -32,3 +32,9 @@
 - 2026-10-18 01:3x — Passe 1 : couche ✨ spots prime (sud ∩ forêt, 1.07M px) + 🍄 202 points GBIF (edulis/aereus/pinophilus/reticulatus) intégrés + légende MAJ.
 - 2026-10-18 01:47 — Passe 2 : 🥇 panel "Meilleurs coins" (top-right, queryRenderedFeatures score=3, clickable flyTo+popup) + highlight gold foret-best layers + toggle + légende MAJ.
 - 2026-10-18 01:57 — Passe 3 : 🌲 couche Essences 10m (Copernicus) : Quercus or/Fagus rouille/Feuillu vert/Pinus sombre → build_essence.py + tuiles /srv/www/cepes/essence (z9-13) + toggle + légende dynamique (affichée uniquement quand layer actif).
+- 2026-10-18 02:10 — Passe 4 : 📊 radar fenêtre future — sparkline 7 barres pluie J+1..J+7 (couleur par intensité) + indice potentiel cèpes futur + push.json enrichi (forecast[] + score_future + rain_fut7).
+- 2026-10-18 02:15 — Passe 5 : 📱 polish mobile — hero card collapsible (toggle ☰/⊕), bouton "📍 Où je suis" centré en bas + flyTo, push card repositionné.
+- 2026-10-18 02:18 — Passe 6 : 🅿️ clusters parkings (4000 pts → agrégats couleur cuivre + count + click-to-expand).
+- 2026-10-18 02:21 — Passe 7 : 🔗 partage de spot (clic droit → popup permalien hash URL + bouton copier).
+- 2026-10-18 02:24 — Passe 8 : 🍄 écran d'intro splash (fond brun, typo Fraunces italic, bouton cuivre "Ouvrir la carte").
+- 2026-10-18 02:32 — Passe 9 : 📥 export GPX — bouton "Exporter en GPX" dans le panel Meilleurs Coins → télécharge waypoints des top spots visibles, prêt GPS/téléphone.
