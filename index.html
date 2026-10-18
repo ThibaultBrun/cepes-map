@@ -372,7 +372,13 @@ const map = new maplibregl.Map({
       sectors: { type: "geojson", data: "sectors.geojson" },
       rain: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
       radarlive: { type: "raster", tiles: ["https://tilecache.rainviewer.com/v2/radar/0/256/{z}/{x}/{y}/2/1_1.png"], tileSize: 256, maxzoom: 7 },
-      foretspub: { type: "geojson", data: "forets_publiques.geojson" }
+      foretspub: { type: "geojson", data: "forets_publiques.geojson" },
+      sp_trompettes: { type: "raster", tiles: ["https://cepes.tbrun.dev/sp/trompettes/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
+      sp_girolles: { type: "raster", tiles: ["https://cepes.tbrun.dev/sp/girolles/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
+      sp_sanguins: { type: "raster", tiles: ["https://cepes.tbrun.dev/sp/sanguins/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
+      sp_piedmouton: { type: "raster", tiles: ["https://cepes.tbrun.dev/sp/piedmouton/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
+      sp_coulemelles: { type: "raster", tiles: ["https://cepes.tbrun.dev/sp/coulemelles/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
+      sp_morilles: { type: "raster", tiles: ["https://cepes.tbrun.dev/sp/morilles/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 }
     },
     layers: [
       { id: "ortho", type: "raster", source: "ortho" },
@@ -481,6 +487,9 @@ map.on("load", () => {
     "heatmap-opacity": 0.72,
     "heatmap-color": ["interpolate",["linear"],["heatmap-density"], 0,"rgba(0,0,0,0)", 0.12,"rgba(130,205,255,0.5)", 0.35,"rgba(60,150,255,0.78)", 0.65,"rgba(40,85,235,0.9)", 1,"rgba(150,45,220,0.95)"] } });
   map.addLayer({ id: "radar-live", type: "raster", source: "radarlive", layout: { visibility: "none" }, paint: { "raster-opacity": 0.78 } });
+  ["trompettes","girolles","sanguins","piedmouton","coulemelles","morilles"].forEach(k=>{
+    map.addLayer({ id: "sp-"+k, type: "raster", source: "sp_"+k, layout: { visibility: "none" }, paint: { "raster-opacity": 0.85 } });
+  });
   map.addLayer({ id: "foretspub-fill", type: "fill", source: "foretspub", layout: { visibility: "none" }, paint: { "fill-color": ["case", ["get","domaniale"], "#2e9e6b", "#4fc37a"], "fill-opacity": 0.14 } });
   map.addLayer({ id: "foretspub-line", type: "line", source: "foretspub", layout: { visibility: "none" }, paint: { "line-color": ["case", ["get","domaniale"], "#1f8f5c", "#4fc37a"], "line-width": 1.8, "line-opacity": 0.85, "line-dasharray": [2,1.4] } });
   map.setTerrain({ source: "dem", exaggeration: 1.45 });
@@ -771,6 +780,10 @@ function setTarget(g){
   // le panneau "Meilleurs coins" (🥇) est spécifique cèpe → masqué pour les autres espèces
   const coins=document.getElementById("coins");
   if(coins) coins.style.display=(g==="Cèpes" && document.getElementById("t-best").checked)?"flex":"none";
+  // couches de potentiel par espèce (toutes masquées, on allumera la bonne)
+  const SPK={"Trompettes":"trompettes","Girolles":"girolles","Sanguins":"sanguins","Pied-de-mouton":"piedmouton","Coulemelles":"coulemelles","Morilles":"morilles"};
+  Object.values(SPK).forEach(k=>{ if(map.getLayer("sp-"+k)) map.setLayoutProperty("sp-"+k,"visibility","none"); });
+  if(SPK[g] && map.getLayer("sp-"+SPK[g])) map.setLayoutProperty("sp-"+SPK[g],"visibility","visible");
   const tf=document.getElementById("t-foret"); if(tf&&!tf.checked){ tf.checked=true; vis(["foret","foret-line"],true); }
   if(g==="Cèpes"){
     map.setPaintProperty("foret","fill-color",["match",["get","score"],3,"#5c2e0c",2,"#c07a3a",1,"#f2dcc0","#999"]);
