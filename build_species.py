@@ -52,8 +52,6 @@ SPEC = {
  "girolles":   lambda: essw({1:0.85,2:0.78,3:0.62})* (0.55+0.45*cool) * (0.6+0.4*valley) * (0.7+0.3*sf),
  "sanguins":   lambda: essw({1:0.12,2:0.15,3:1.0}) * (0.85) * (0.7+0.3*sf),
  "piedmouton": lambda: essw({1:0.8,2:0.76,3:0.82}) * (0.6+0.4*cool) * (0.72+0.28*sf),
- "coulemelles":lambda: np.clip(0.85*lis + 0.18*(eg>0) + 0.25*(valley), 0, 1.3) * (slope<18),
- "morilles":   lambda: essw({1:0.7,2:0.82,3:0.15}) * (0.35+0.65*valley) * (0.55+0.45*lis),
 }
 
 drv = gdal.GetDriverByName("GTiff")

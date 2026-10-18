@@ -18,8 +18,6 @@ SPECIES = {
     "Lactarius deliciosus":      ("Lactaire délicieux (sanguin)", "Sanguins", "#e8622a"),
     "Lactarius sanguifluus":     ("Sanguin", "Sanguins", "#c0352a"),
     "Hydnum repandum":           ("Pied-de-mouton", "Pied-de-mouton", "#e8d9a8"),
-    "Morchella esculenta":       ("Morille", "Morilles", "#7a5a2e"),
-    "Macrolepiota procera":      ("Coulemelle", "Coulemelles", "#c9a06a"),
     "Imleria badia":             ("Bolet bai", "Cèpes", "#6e4a28"),
 }
 
