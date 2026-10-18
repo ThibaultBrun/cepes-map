@@ -491,11 +491,21 @@ map.on("load", () => {
 const LABEL={3:"Top — tête de nègre / cèpe de Bordeaux",2:"Favorable — cèpe des pins",1:"Possible"};
 const SCORE_ICO={3:"🥇",2:"🌲",1:"🌿"};
 const tip=document.getElementById("map-tip");
-map.on("click","foret",(e)=>{const p=e.features[0].properties;
-  new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<b>${LABEL[p.score]||"—"}</b><br>${p.essence||""}<br><span style="opacity:.6">${p.tfv||""}</span>`).addTo(map);});
+// label d'une parcelle adapté à l'espèce cherchée (currentTarget)
+function fungLabel(p){
+  if(typeof currentTarget==="undefined"||currentTarget==="Cèpes")
+    return {ico:SCORE_ICO[p.score]||"🌿", txt:LABEL[p.score]||"?"};
+  const cfg=(typeof SPECIES_ESS!=="undefined"&&SPECIES_ESS[currentTarget])||{};
+  const e=p.essence||"";
+  if((cfg.top||[]).includes(e)) return {ico:"🥇", txt:"Top — "+currentTarget};
+  if((cfg.good||[]).includes(e)) return {ico:"🌲", txt:"Favorable — "+currentTarget};
+  return {ico:"🌿", txt:"Peu favorable pour "+currentTarget};
+}
+map.on("click","foret",(e)=>{const p=e.features[0].properties; const l=fungLabel(p);
+  new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`${l.ico} <b>${l.txt}</b><br>${p.essence||""}<br><span style="opacity:.6">${p.tfv||""}</span>`).addTo(map);});
 map.on("mousemove","foret",(e)=>{
-  const p=e.features[0].properties;
-  tip.innerHTML=`${SCORE_ICO[p.score]||"🌿"} <b>${LABEL[p.score]||"?"}</b><br><span style="opacity:.65">${p.essence||""}</span>`;
+  const p=e.features[0].properties; const l=fungLabel(p);
+  tip.innerHTML=`${l.ico} <b>${l.txt}</b><br><span style="opacity:.65">${p.essence||""}</span>`;
   tip.style.display="block";
   tip.style.left=(e.originalEvent.clientX+16)+"px";
   tip.style.top=(e.originalEvent.clientY-12)+"px";
