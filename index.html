@@ -253,7 +253,8 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   </div>
   <label class="row"><input type="checkbox" id="t-secteurs"> 🌧️ Secteurs favorables (météo)</label>
   <div style="font-size:9.5px;opacity:.5;margin:-2px 0 4px 2px;line-height:1.4">🟢 fenêtre ouverte · 🟡 ça s'amorce · ⚪ sec — d'après la pluie des ~15 j (clique un secteur)</div>
-  <label class="row"><input type="checkbox" id="t-rain"> 🌧️ Pluie à venir (48 h, pas 15 min)</label>
+  <label class="row"><input type="checkbox" id="t-radarlive"> 📡 Radar live (pluie en direct ~2 h)</label>
+  <label class="row"><input type="checkbox" id="t-rain"> 🌧️ Pluie prévue (48 h, pas 15 min)</label>
   <label class="row"><input type="checkbox" id="t-plan"> 🗺️ Fond plan (carto)</label>
   <label class="row"><input type="checkbox" id="t-foret" checked> 🌳 Potentiel forêt</label>
   <label class="row"><input type="checkbox" id="t-prime" checked> ✨ Spots prime (score cèpe)</label>
@@ -341,7 +342,8 @@ const map = new maplibregl.Map({
       lisiere: { type: "raster", tiles: ["https://cepes.tbrun.dev/lisiere/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
       sortie: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
       sectors: { type: "geojson", data: "sectors.geojson" },
-      rain: { type: "geojson", data: { type: "FeatureCollection", features: [] } }
+      rain: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
+      radarlive: { type: "raster", tiles: ["https://tilecache.rainviewer.com/v2/radar/0/256/{z}/{x}/{y}/2/1_1.png"], tileSize: 256, maxzoom: 7 }
     },
     layers: [
       { id: "ortho", type: "raster", source: "ortho" },
@@ -449,6 +451,7 @@ map.on("load", () => {
     "heatmap-radius": ["interpolate",["linear"],["zoom"], 7,14, 10,34, 13,85],
     "heatmap-opacity": 0.72,
     "heatmap-color": ["interpolate",["linear"],["heatmap-density"], 0,"rgba(0,0,0,0)", 0.12,"rgba(130,205,255,0.5)", 0.35,"rgba(60,150,255,0.78)", 0.65,"rgba(40,85,235,0.9)", 1,"rgba(150,45,220,0.95)"] } });
+  map.addLayer({ id: "radar-live", type: "raster", source: "radarlive", layout: { visibility: "none" }, paint: { "raster-opacity": 0.78 } });
   map.setTerrain({ source: "dem", exaggeration: 1.45 });
   map.setPaintProperty("gbif-pt","circle-opacity",["step",["coalesce",["to-number",["get","year"]],2000],0.35,2005,0.55,2015,0.8,2020,1.0]);
   map.setPaintProperty("gbif-glow","circle-opacity",["step",["coalesce",["to-number",["get","year"]],2000],0.18,2010,0.35,2020,0.55]);
@@ -499,42 +502,72 @@ map.on("click","sectors-fill",(e)=>{
 });
 map.on("mouseenter","sectors-fill",()=>map.getCanvas().style.cursor="pointer");
 map.on("mouseleave","sectors-fill",()=>map.getCanvas().style.cursor="");
-// ── Animation pluie prévue 48 h (Open-Meteo, pas de 1 h) ──
-let rainData=null, rainFeatures=null, rainFrame=0, rainTimer=null;
-function fmtHour(iso){ const d=new Date(iso); const j=["dim","lun","mar","mer","jeu","ven","sam"]; return j[d.getDay()]+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
-function setRainFrame(h){
-  if(!rainData) return; rainFrame=h;
-  rainData.points.forEach((pt,i)=>{ rainFeatures[i].properties.p=pt.p[h]; });
-  const src=map.getSource("rain"); if(src) src.setData({type:"FeatureCollection",features:rainFeatures});
-  document.getElementById("rain-slider").value=h;
-  const t=rainData.times[h]; const mins=h*(rainData.step_min||15);
-  const rel = h===0?"maintenant":"+"+Math.floor(mins/60)+"h"+(mins%60?String(mins%60).padStart(2,"0"):"");
-  document.getElementById("rain-time").textContent=t?fmtHour(t)+" · "+rel:"—";
+// ── Animations pluie : mode 'forecast' (prévi 48h) ou 'live' (radar RainViewer) ──
+let rainData=null, rainFeatures=null, liveFrames=[], rainMode=null, rainFrame=0, rainTimer=null;
+const J=["dim","lun","mar","mer","jeu","ven","sam"];
+function fmtTime(d){ return J[d.getDay()]+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
+function frameCount(){ return rainMode==="live"?liveFrames.length:(rainData?rainData.times.length:0); }
+function applyFrame(i){
+  rainFrame=i;
+  if(rainMode==="forecast"){
+    rainData.points.forEach((pt,k)=>{ rainFeatures[k].properties.p=pt.p[i]; });
+    const s=map.getSource("rain"); if(s) s.setData({type:"FeatureCollection",features:rainFeatures});
+    const mins=i*(rainData.step_min||15);
+    const rel=i===0?"maintenant":"+"+Math.floor(mins/60)+"h"+(mins%60?String(mins%60).padStart(2,"0"):"");
+    document.getElementById("rain-time").textContent=fmtTime(new Date(rainData.times[i]))+" · "+rel;
+  } else if(rainMode==="live"){
+    const f=liveFrames[i]; const s=map.getSource("radarlive"); if(s) s.setTiles([f.url]);
+    document.getElementById("rain-time").textContent=fmtTime(new Date(f.time*1000))+(f.nowcast?" · prévu":" · live");
+  }
+  document.getElementById("rain-slider").value=i;
 }
 function rainPlay(on){
   const btn=document.getElementById("rain-play");
-  if(on&&rainData){ btn.textContent="⏸"; if(rainTimer)clearInterval(rainTimer); rainTimer=setInterval(()=>setRainFrame((rainFrame+1)%rainData.times.length),420); }
+  if(on&&frameCount()){ btn.textContent="⏸"; if(rainTimer)clearInterval(rainTimer);
+    const dt=rainMode==="live"?500:420;
+    rainTimer=setInterval(()=>applyFrame((rainFrame+1)%frameCount()),dt); }
   else { btn.textContent="▶"; clearInterval(rainTimer); rainTimer=null; }
 }
-// pause l'anim pendant les gestes carte (fluidité), reprise au relâché
 let rainWasPlaying=false;
 map.on("movestart",()=>{ if(rainTimer){ rainWasPlaying=true; rainPlay(false); } });
 map.on("moveend",()=>{ if(rainWasPlaying){ rainWasPlaying=false; if(document.body.classList.contains("rain-on")) rainPlay(true); } });
-async function loadRain(){
+async function loadForecast(){
   if(rainData) return true;
   try{ rainData=await (await fetch("rain48.json?t="+Date.now())).json(); }catch(e){ return false; }
   rainFeatures=rainData.points.map(pt=>({type:"Feature",geometry:{type:"Point",coordinates:[pt.lon,pt.lat]},properties:{p:pt.p[0]}}));
-  document.getElementById("rain-slider").max=rainData.times.length-1;
   return true;
 }
+async function loadLive(){
+  try{
+    const d=await (await fetch("https://api.rainviewer.com/public/weather-maps.json?t="+Date.now())).json();
+    const past=(d.radar.past||[]).map(f=>({time:f.time,nowcast:false,url:`${d.host}${f.path}/256/{z}/{x}/{y}/2/1_1.png`}));
+    const now=(d.radar.nowcast||[]).map(f=>({time:f.time,nowcast:true,url:`${d.host}${f.path}/256/{z}/{x}/{y}/2/1_1.png`}));
+    liveFrames=[...past,...now];
+    return liveFrames.length>0;
+  }catch(e){ return false; }
+}
+function startRain(mode){
+  rainMode=mode;
+  document.getElementById("rain-slider").max=frameCount()-1;
+  document.body.classList.add("rain-on"); applyFrame(0); rainPlay(true);
+}
+function stopRain(){ document.body.classList.remove("rain-on"); rainPlay(false); rainMode=null; }
 document.getElementById("t-rain").onchange=async(e)=>{
   if(e.target.checked){
-    if(!(await loadRain())){ e.target.checked=false; return; }
-    vis(["rain-heat"],true); document.body.classList.add("rain-on"); setRainFrame(0); rainPlay(true);
-  } else { vis(["rain-heat"],false); document.body.classList.remove("rain-on"); rainPlay(false); }
+    document.getElementById("t-radarlive").checked=false; vis(["radar-live"],false);
+    if(!(await loadForecast())){ e.target.checked=false; return; }
+    vis(["rain-heat"],true); startRain("forecast");
+  } else { vis(["rain-heat"],false); stopRain(); }
+};
+document.getElementById("t-radarlive").onchange=async(e)=>{
+  if(e.target.checked){
+    document.getElementById("t-rain").checked=false; vis(["rain-heat"],false);
+    if(!(await loadLive())){ e.target.checked=false; alert("Radar live indisponible."); return; }
+    vis(["radar-live"],true); startRain("live");
+  } else { vis(["radar-live"],false); stopRain(); }
 };
 document.getElementById("rain-play").onclick=()=>rainPlay(!rainTimer);
-document.getElementById("rain-slider").oninput=(e)=>{ rainPlay(false); setRainFrame(+e.target.value); };
+document.getElementById("rain-slider").oninput=(e)=>{ rainPlay(false); applyFrame(+e.target.value); };
 // ── Sorties enregistrées (multi-itinéraires) : affichage + zoom ──
 const SORTIE_LAYERS=["sortie-cas","sortie-line","sortie-wp"];
 const SORTIES=[
