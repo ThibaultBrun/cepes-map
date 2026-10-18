@@ -237,6 +237,8 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
     <input id="geocoder" type="text" placeholder="🔍 Chercher une commune…" autocomplete="off">
     <div id="geo-results"></div>
   </div>
+  <label class="row"><input type="checkbox" id="t-secteurs"> 🌧️ Secteurs favorables (météo)</label>
+  <div style="font-size:9.5px;opacity:.5;margin:-2px 0 4px 2px;line-height:1.4">🟢 fenêtre ouverte · 🟡 ça s'amorce · ⚪ sec — d'après la pluie des ~15 j (clique un secteur)</div>
   <label class="row"><input type="checkbox" id="t-plan"> 🗺️ Fond plan (carto)</label>
   <label class="row"><input type="checkbox" id="t-foret" checked> 🌳 Potentiel forêt</label>
   <label class="row"><input type="checkbox" id="t-prime" checked> ✨ Spots prime (score cèpe)</label>
@@ -322,13 +324,18 @@ const map = new maplibregl.Map({
       gbif: { type: "geojson", data: "gbif.geojson" },
       strava: { type: "raster", tiles: ["https://cepes.tbrun.dev/strava/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
       lisiere: { type: "raster", tiles: ["https://cepes.tbrun.dev/lisiere/{z}/{x}/{y}.png"], tileSize: 256, maxzoom: 13 },
-      sortie: { type: "geojson", data: { type: "FeatureCollection", features: [] } }
+      sortie: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
+      sectors: { type: "geojson", data: "sectors.geojson" }
     },
     layers: [
       { id: "ortho", type: "raster", source: "ortho" },
       { id: "plan", type: "raster", source: "plan", layout: { visibility: "none" } },
       { id: "hill", type: "hillshade", source: "dem",
         paint: { "hillshade-exaggeration": 0.5, "hillshade-shadow-color": "#1a0f06", "hillshade-highlight-color": "#fff2d6" } },
+      { id: "sectors-fill", type: "fill", source: "sectors", layout: { visibility: "none" },
+        paint: { "fill-color": ["step", ["get","score"], "#8fb3cf", 40, "#e3ab4d", 70, "#4fc37a"], "fill-opacity": 0.26 } },
+      { id: "sectors-line", type: "line", source: "sectors", layout: { visibility: "none" },
+        paint: { "line-color": ["step", ["get","score"], "#8fb3cf", 40, "#e3ab4d", 70, "#4fc37a"], "line-width": 1.6, "line-opacity": 0.7 } },
       { id: "foret", type: "fill", source: "foret", "source-layer": "foret",
         paint: { "fill-color": ["match", ["get","score"], 3, "#5c2e0c", 2, "#c07a3a", 1, "#f2dcc0", "#999"], "fill-opacity": 0.55 } },
       { id: "foret-line", type: "line", source: "foret", "source-layer": "foret",
@@ -451,6 +458,25 @@ document.getElementById("t-lisiere").onchange=e=>vis(["lisiere"],e.target.checke
 document.getElementById("t-strava").onchange=e=>vis(["strava"],e.target.checked);
 document.getElementById("t-sent").onchange =e=>vis(["sentiers"],e.target.checked);
 document.getElementById("t-park").onchange =e=>vis(["parkings"],e.target.checked);
+// ── Secteurs météo : coloration selon le score de poussée (push.json zones) ──
+document.getElementById("t-secteurs").onchange=e=>vis(["sectors-fill","sectors-line"],e.target.checked);
+let sectorsGeo=null;
+function applySectorScores(zones){
+  if(!sectorsGeo||!Array.isArray(zones)) return;
+  const by={}; zones.forEach(z=>by[z.name]={score:z.score,lag:z.lag,rain:z.rain_mm});
+  sectorsGeo.features.forEach(f=>{ const z=by[f.properties.name]; if(z){ f.properties.score=z.score; f.properties.lag=z.lag; f.properties.rain=z.rain; } });
+  const src=map.getSource("sectors"); if(src) src.setData(sectorsGeo);
+}
+fetch("sectors.geojson").then(r=>r.json()).then(g=>{ sectorsGeo=g; if(window.__pushZones) applySectorScores(window.__pushZones); }).catch(()=>{});
+map.on("click","sectors-fill",(e)=>{
+  const p=e.features[0].properties;
+  const sc=+p.score||0;
+  const verdict = sc>=70 ? "🟢 Fenêtre ouverte" : sc>=40 ? "🟡 Ça s'amorce" : "⚪ Trop sec";
+  const det = sc>=40 && p.rain ? `<br><span style="font-size:11px;opacity:.8">saucée ~${p.rain} mm, il y a ${p.lag} j</span>` : "";
+  new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<b>${p.name}</b><br>${verdict}${det}`).addTo(map);
+});
+map.on("mouseenter","sectors-fill",()=>map.getCanvas().style.cursor="pointer");
+map.on("mouseleave","sectors-fill",()=>map.getCanvas().style.cursor="");
 // ── Sorties enregistrées (multi-itinéraires) : affichage + zoom ──
 const SORTIE_LAYERS=["sortie-cas","sortie-line","sortie-wp"];
 const SORTIES=[
@@ -775,6 +801,7 @@ window.addEventListener('appinstalled', () => {
 });
 
 fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
+  window.__pushZones = p.zones; applySectorScores(p.zones);
   const col = p.score>=85?"#49c173": p.score>=60?"#9acd32": p.score>=35?"#e3ab4d":"#8fb3cf";
   const dot = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${col};box-shadow:0 0 12px ${col};margin-right:8px;vertical-align:middle"></span>`;
   const bits=[]; if(p.window) bits.push(p.window);
