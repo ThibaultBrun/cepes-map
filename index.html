@@ -253,7 +253,7 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   </div>
   <label class="row"><input type="checkbox" id="t-secteurs"> 🌧️ Secteurs favorables (météo)</label>
   <div style="font-size:9.5px;opacity:.5;margin:-2px 0 4px 2px;line-height:1.4">🟢 fenêtre ouverte · 🟡 ça s'amorce · ⚪ sec — d'après la pluie des ~15 j (clique un secteur)</div>
-  <label class="row"><input type="checkbox" id="t-rain"> 🌧️ Pluie à venir (animation 48 h)</label>
+  <label class="row"><input type="checkbox" id="t-rain"> 🌧️ Pluie à venir (48 h, pas 15 min)</label>
   <label class="row"><input type="checkbox" id="t-plan"> 🗺️ Fond plan (carto)</label>
   <label class="row"><input type="checkbox" id="t-foret" checked> 🌳 Potentiel forêt</label>
   <label class="row"><input type="checkbox" id="t-prime" checked> ✨ Spots prime (score cèpe)</label>
@@ -444,7 +444,7 @@ function makeParkingIcon(){
 map.on("load", () => {
   if (!map.hasImage("pk-icon")) map.addImage("pk-icon", makeParkingIcon(), { pixelRatio: 2.4 });
   map.addLayer({ id: "rain-heat", type: "heatmap", source: "rain", layout: { visibility: "none" }, paint: {
-    "heatmap-weight": ["interpolate",["linear"],["get","p"], 0,0, 1,0.3, 4,0.65, 10,1],
+    "heatmap-weight": ["interpolate",["linear"],["get","p"], 0,0, 0.2,0.3, 1,0.65, 3,1],
     "heatmap-intensity": 1.1,
     "heatmap-radius": ["interpolate",["linear"],["zoom"], 7,14, 10,34, 13,85],
     "heatmap-opacity": 0.72,
@@ -501,18 +501,19 @@ map.on("mouseenter","sectors-fill",()=>map.getCanvas().style.cursor="pointer");
 map.on("mouseleave","sectors-fill",()=>map.getCanvas().style.cursor="");
 // ── Animation pluie prévue 48 h (Open-Meteo, pas de 1 h) ──
 let rainData=null, rainFeatures=null, rainFrame=0, rainTimer=null;
-function fmtHour(iso){ const d=new Date(iso); const j=["dim","lun","mar","mer","jeu","ven","sam"]; return j[d.getDay()]+" "+String(d.getHours()).padStart(2,"0")+"h"; }
+function fmtHour(iso){ const d=new Date(iso); const j=["dim","lun","mar","mer","jeu","ven","sam"]; return j[d.getDay()]+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
 function setRainFrame(h){
   if(!rainData) return; rainFrame=h;
   rainData.points.forEach((pt,i)=>{ rainFeatures[i].properties.p=pt.p[h]; });
   const src=map.getSource("rain"); if(src) src.setData({type:"FeatureCollection",features:rainFeatures});
   document.getElementById("rain-slider").value=h;
-  const t=rainData.times[h];
-  document.getElementById("rain-time").textContent=t?fmtHour(t)+(h===0?" · maintenant":" · +"+h+"h"):"—";
+  const t=rainData.times[h]; const mins=h*(rainData.step_min||15);
+  const rel = h===0?"maintenant":"+"+Math.floor(mins/60)+"h"+(mins%60?String(mins%60).padStart(2,"0"):"");
+  document.getElementById("rain-time").textContent=t?fmtHour(t)+" · "+rel:"—";
 }
 function rainPlay(on){
   const btn=document.getElementById("rain-play");
-  if(on&&rainData){ btn.textContent="⏸"; if(rainTimer)clearInterval(rainTimer); rainTimer=setInterval(()=>setRainFrame((rainFrame+1)%rainData.times.length),700); }
+  if(on&&rainData){ btn.textContent="⏸"; if(rainTimer)clearInterval(rainTimer); rainTimer=setInterval(()=>setRainFrame((rainFrame+1)%rainData.times.length),240); }
   else { btn.textContent="▶"; clearInterval(rainTimer); rainTimer=null; }
 }
 async function loadRain(){
