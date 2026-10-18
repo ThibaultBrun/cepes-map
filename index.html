@@ -695,8 +695,15 @@ function applyGbifFilter(){
   const f=activeSpecies.size===ALL_GROUPS.length?null:["in",["get","group"],["literal",[...activeSpecies]]];
   ["gbif-heat","gbif-glow","gbif-pt"].forEach(id=>map.setFilter(id,f));
 }
+function ensureGbifOn(){
+  if(map.getLayoutProperty("gbif-pt","visibility")!=="visible"){
+    const cb=document.getElementById("t-gbif"); if(cb) cb.checked=true;
+    vis(["gbif-heat","gbif-glow","gbif-pt"],true);
+  }
+}
 document.querySelectorAll(".sp-chip").forEach(chip=>{
   chip.addEventListener("click",()=>{
+    ensureGbifOn();  // cliquer un filtre allume la couche trouvailles si besoin
     const sp=chip.dataset.sp;
     if(activeSpecies.has(sp)){ if(activeSpecies.size===1)return; activeSpecies.delete(sp);chip.classList.add("off"); }
     else { activeSpecies.add(sp);chip.classList.remove("off"); }
@@ -742,6 +749,12 @@ function foretExprFor(cfg){
 }
 function setTarget(g){
   document.getElementById("target-hint").textContent="🍄 "+(TARGET_HINT[g]||"");
+  // synchronise les trouvailles GBIF sur l'espèce cherchée
+  if(typeof activeSpecies!=="undefined"){
+    activeSpecies.clear(); activeSpecies.add(g);
+    document.querySelectorAll(".sp-chip").forEach(c=>c.classList.toggle("off", c.dataset.sp!==g));
+    applyGbifFilter();
+  }
   const tf=document.getElementById("t-foret"); if(tf&&!tf.checked){ tf.checked=true; vis(["foret","foret-line"],true); }
   if(g==="Cèpes"){
     map.setPaintProperty("foret","fill-color",["match",["get","score"],3,"#5c2e0c",2,"#c07a3a",1,"#f2dcc0","#999"]);
