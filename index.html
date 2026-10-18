@@ -259,7 +259,7 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   <label class="row"><input type="checkbox" id="t-foret" checked> 🌳 Potentiel forêt</label>
   <label class="row"><input type="checkbox" id="t-prime" checked> ✨ Spots prime (score cèpe)</label>
   <label class="row"><input type="checkbox" id="t-best" checked> 🥇 Meilleurs coins (cèpe de Bordeaux)</label>
-  <label class="row"><input type="checkbox" id="t-gbif"> 🍄 Trouvailles réelles (GBIF)</label>
+  <label class="row"><input type="checkbox" id="t-gbif"> 🍄 Trouvailles réelles (tous comestibles)</label>
   <label class="row"><input type="checkbox" id="t-ess"> 🌲 Essences 10m (Copernicus)</label>
   <label class="row"><input type="checkbox" id="t-lisiere"> 🌾 Lisières (bordures forêt)</label>
   <label class="row"><input type="checkbox" id="t-expo"> ☀️ Versants favorables</label>
@@ -289,18 +289,21 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
   <div class="leg"><span class="sw" style="background:rgba(190,205,95,.7);border-color:#9bb54a"></span> 🌾 Lisières (effet de bordure)</div>
   <div class="leg"><span class="sw" style="background:#f5c842;border-color:#d4a012"></span> 🥇 Meilleurs coins (chêne/châtaignier/hêtre)</div>
   <div class="leg" style="flex-direction:column;align-items:flex-start;gap:2px">
-    <span style="font-size:12px;font-weight:600">🍄 Trouvailles réelles (GBIF)</span>
+    <span style="font-size:12px;font-weight:600">🍄 Trouvailles réelles (tous comestibles)</span>
     <div style="display:flex;align-items:center;gap:6px;margin-top:3px;margin-bottom:2px">
       <div style="width:80px;height:7px;border-radius:4px;background:linear-gradient(90deg,#f2dcc0,#c88c50,#8c4a1e,#4a260c);border:1px solid rgba(255,255,255,0.12)"></div>
       <span style="font-size:10px;opacity:.6">densité</span>
     </div>
     <div id="sp-filters" style="display:flex;gap:5px;flex-wrap:wrap;margin-top:3px">
-      <span class="sp-chip" data-sp="Boletus edulis"><span class="spdot" style="background:#f5c842;border:1px solid #b9351a"></span>B. edulis</span>
-      <span class="sp-chip" data-sp="Boletus aereus"><span class="spdot" style="background:#5c2d00;border:1px solid #ff9944"></span>B. aereus</span>
-      <span class="sp-chip" data-sp="Boletus pinophilus"><span class="spdot" style="background:#c0430c;border:1px solid #ff9944"></span>B. pinophilus</span>
-      <span class="sp-chip" data-sp="Boletus reticulatus"><span class="spdot" style="background:#d4a558;border:1px solid #a07020"></span>B. reticulatus</span>
+      <span class="sp-chip" data-sp="Cèpes"><span class="spdot" style="background:#f5c842;border:1px solid #b9351a"></span>Cèpes</span>
+      <span class="sp-chip" data-sp="Girolles"><span class="spdot" style="background:#ffb02e;border:1px solid #a86a00"></span>Girolles</span>
+      <span class="sp-chip" data-sp="Trompettes"><span class="spdot" style="background:#26242b;border:1px solid #888"></span>Trompettes</span>
+      <span class="sp-chip" data-sp="Sanguins"><span class="spdot" style="background:#e8622a;border:1px solid #8a2a10"></span>Sanguins</span>
+      <span class="sp-chip" data-sp="Pied-de-mouton"><span class="spdot" style="background:#e8d9a8;border:1px solid #a89050"></span>Pied-de-mouton</span>
+      <span class="sp-chip" data-sp="Coulemelles"><span class="spdot" style="background:#c9a06a;border:1px solid #8a6a3a"></span>Coulemelles</span>
+      <span class="sp-chip" data-sp="Morilles"><span class="spdot" style="background:#7a5a2e;border:1px solid #4a3418"></span>Morilles</span>
     </div>
-    <div style="font-size:9.5px;opacity:.45;margin-top:3px;line-height:1.4">Cliquer une espèce pour filtrer · Opacité ∝ fraîcheur obs</div>
+    <div style="font-size:9.5px;opacity:.45;margin-top:3px;line-height:1.4">Cliquer un type pour filtrer · Opacité ∝ fraîcheur de l'observation</div>
   </div>
   <div class="note">🎯 Vise les <b>spots en or</b> : bonne essence (chêne/châtaignier/hêtre) d'abord, puis <b>lisières</b> et versants doux, ~10 j après une bonne pluie. Le nord/est frais compte autant que le sud ici (climat atlantique). Les points 🍄 sont de <b>vraies récoltes</b> déclarées. Clique une parcelle ou un point pour le détail.</div>
   <div style="margin-top:10px;padding-top:9px;border-top:1px solid var(--line);font-size:10.5px">
@@ -383,9 +386,9 @@ const map = new maplibregl.Map({
             1,"rgba(74,38,12,0.92)"]
         }},
       { id: "gbif-glow", type: "circle", source: "gbif", layout: { visibility: "none" },
-        paint: { "circle-radius": 10, "circle-color": ["match",["get","species"],"Boletus edulis","#f5c842","Boletus aereus","#7a3500","Boletus pinophilus","#ff5a1a","Boletus reticulatus","#d4a558","#ff5a3c"], "circle-blur": 1.1, "circle-opacity": 0.55 } },
+        paint: { "circle-radius": 10, "circle-color": ["match",["get","group"],"Cèpes","#f5c842","Girolles","#ffb02e","Trompettes","#4a4752","Sanguins","#e8622a","Pied-de-mouton","#e8d9a8","Morilles","#7a5a2e","Coulemelles","#c9a06a","#ff5a3c"], "circle-blur": 1.1, "circle-opacity": 0.5 } },
       { id: "gbif-pt", type: "circle", source: "gbif", layout: { visibility: "none" },
-        paint: { "circle-radius": 5, "circle-color": ["match",["get","species"],"Boletus edulis","#f5c842","Boletus aereus","#5c2d00","Boletus pinophilus","#c0430c","Boletus reticulatus","#d4a558","#ffe08a"], "circle-stroke-color": ["match",["get","species"],"Boletus edulis","#b9351a","Boletus aereus","#ff9944","Boletus pinophilus","#ff9944","Boletus reticulatus","#a07020","#b9351a"], "circle-stroke-width": 1.8 } },
+        paint: { "circle-radius": 5, "circle-color": ["match",["get","group"],"Cèpes","#f5c842","Girolles","#ffb02e","Trompettes","#26242b","Sanguins","#e8622a","Pied-de-mouton","#e8d9a8","Morilles","#7a5a2e","Coulemelles","#c9a06a","#ffe08a"], "circle-stroke-color": "#fff8ec", "circle-stroke-width": 1.5 } },
       { id: "sentiers", type: "line", source: "sentiers", "source-layer": "sentiers", layout: { visibility: "none", "line-cap": "round" },
         paint: { "line-color": "#f6e3a8", "line-width": ["interpolate",["linear"],["zoom"],11,0.4,14,1.6], "line-opacity": 0.85, "line-dasharray": [2,1.5] } },
       { id: "parkings", type: "symbol", source: "parkings", layout: { visibility: "none",
@@ -634,38 +637,42 @@ const GBIF_SVG={
   "Boletus pinophilus":`<svg width="40" height="38" viewBox="0 0 40 38" fill="none"><ellipse cx="20" cy="13" rx="17" ry="10" fill="#8B2500"/><ellipse cx="20" cy="13" rx="15" ry="8" fill="#a03010"/><rect x="15" y="21" width="10" height="15" rx="4" fill="#C4906A"/><rect x="16" y="22" width="8" height="13" rx="3" fill="#b07050" opacity=".5"/></svg>`,
   "Boletus reticulatus":`<svg width="40" height="38" viewBox="0 0 40 38" fill="none"><ellipse cx="20" cy="12" rx="17" ry="9" fill="#C8A96A"/><ellipse cx="20" cy="12" rx="14" ry="7" fill="#D4B896"/><rect x="15" y="19" width="10" height="16" rx="4" fill="#E8D4B0"/><rect x="16" y="20" width="8" height="14" rx="3" fill="#c8a96a" opacity=".45"/></svg>`
 };
-// ── Species filter chips ──────────────────────────────────────────────
-const activeSpecies=new Set(["Boletus edulis","Boletus aereus","Boletus pinophilus","Boletus reticulatus"]);
+// ── Filtres par type de champignon ────────────────────────────────────
+const GROUP_COL={"Cèpes":"#f5c842","Girolles":"#ffb02e","Trompettes":"#26242b","Sanguins":"#e8622a","Pied-de-mouton":"#e8d9a8","Morilles":"#7a5a2e","Coulemelles":"#c9a06a"};
+const GROUP_HAB={
+  "Cèpes":"Chênaies & hêtraies (sols acides). Sortie ~8-12 j après une bonne pluie, versants frais.",
+  "Girolles":"Sous feuillus & conifères, dans la mousse. Aime l'humidité, pousse en colonies.",
+  "Trompettes":"Hêtraies & chênaies fraîches à litière. En touffes, très discrète (noire) — scrute le sol !",
+  "Sanguins":"Pinèdes (sous les pins). Lait orange-carotte à la coupe. Pleine saison en automne.",
+  "Pied-de-mouton":"Feuillus & conifères. Dessous à aiguillons (pas de lames). Peu véreux, se conserve bien.",
+  "Morilles":"Printemps (mars-mai) ! Frênaies, vergers, lisières, sols remués. Toujours bien cuite.",
+  "Coulemelles":"Prairies, lisières, clairières. ⚠️ ne jamais confondre avec les petites lépiotes (mortelles)."
+};
+const ALL_GROUPS=Object.keys(GROUP_COL);
+const activeSpecies=new Set(ALL_GROUPS);
 function applyGbifFilter(){
-  const f=activeSpecies.size===4?null:["in",["get","species"],["literal",[...activeSpecies]]];
+  const f=activeSpecies.size===ALL_GROUPS.length?null:["in",["get","group"],["literal",[...activeSpecies]]];
   ["gbif-heat","gbif-glow","gbif-pt"].forEach(id=>map.setFilter(id,f));
 }
 document.querySelectorAll(".sp-chip").forEach(chip=>{
   chip.addEventListener("click",()=>{
     const sp=chip.dataset.sp;
-    if(activeSpecies.has(sp)){
-      if(activeSpecies.size===1)return;
-      activeSpecies.delete(sp);chip.classList.add("off");
-    } else {
-      activeSpecies.add(sp);chip.classList.remove("off");
-    }
+    if(activeSpecies.has(sp)){ if(activeSpecies.size===1)return; activeSpecies.delete(sp);chip.classList.add("off"); }
+    else { activeSpecies.add(sp);chip.classList.remove("off"); }
     applyGbifFilter();
   });
 });
-// Freshness opacity appliquée dans le handler "load" (sinon "Style is not done loading")
-// ─────────────────────────────────────────────────────────────────────
 map.on("click","gbif-pt",(e)=>{const p=e.features[0].properties;
-  const col=GBIF_COL[p.species]||"#f5c842";
-  const fr=GBIF_FR[p.species]||p.species||"Boletus";
-  const hab=GBIF_HAB[p.species]||"";
-  const svg=GBIF_SVG[p.species]||"";
+  const grp=p.group||"Cèpes"; const col=GROUP_COL[grp]||"#f5c842";
+  const fr=p.fr||p.species||"Champignon"; const hab=GROUP_HAB[grp]||"";
+  const svg=(typeof GBIF_SVG!=="undefined"&&GBIF_SVG[p.species])||`<div style="width:34px;height:34px;border-radius:50%;flex:none;background:${col};border:2px solid #fff8ec"></div>`;
   new maplibregl.Popup({maxWidth:"240px"}).setLngLat(e.lngLat).setHTML(
     `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(224,168,74,.2)">
       ${svg}
       <div><b style="font-size:14px;font-family:'Fraunces';font-style:italic">${fr}</b><br><span style="font-size:10.5px;font-style:italic;opacity:.6">${p.species||""}</span></div>
     </div>
     <div style="font-size:10.5px;line-height:1.5;opacity:.8;margin-bottom:6px">${hab}</div>
-    <div style="font-size:10px;opacity:.5">🗓️ Observation${p.year?" · "+p.year:""} · <span style="color:${col}">●</span> ${fr}</div>`
+    <div style="font-size:10px;opacity:.5">🗓️ Observation${p.year?" · "+p.year:""} · <span style="color:${col}">●</span> ${grp}</div>`
   ).addTo(map);});
 // Coins panel: list top score=3 parcels visible on screen
 let _coinsOpen = true;
