@@ -8,17 +8,10 @@ STATE = pathlib.Path("/home/debian/cepes/push_state.json")
 DISCORD_CH = "1511007406870495265"  # #dev (à changer pour un salon dédié)
 
 # Secteurs échantillonnés sur toute la zone (la pluie est très localisée ici,
-# un seul point rate les orages de versant → on sonde plusieurs coins).
-POINTS = [
-    ("Bayonne / St-Pierre-d'Irube", 43.47, -1.45),
-    ("Anglet / côte", 43.49, -1.52),
-    ("Ustaritz / Nive", 43.40, -1.45),
-    ("Cambo / Itxassou", 43.36, -1.40),
-    ("Espelette / sud", 43.33, -1.45),
-    ("St-Jean-de-Luz / Ciboure", 43.39, -1.64),
-    ("Hasparren / est", 43.38, -1.30),
-    ("Sud Landes / Labenne", 43.59, -1.44),
-]
+# un seul point rate les orages de versant → on sonde une grille de communes).
+# Gazetteer partagé avec le générateur de secteurs (sectors_points.json).
+_PTS = json.load(open(pathlib.Path(__file__).parent / "sectors_points.json"))
+POINTS = [(p["name"], p["lat"], p["lon"]) for p in _PTS]
 
 def meteo_multi():
     lats = ",".join(str(p[1]) for p in POINTS)
