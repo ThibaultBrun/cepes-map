@@ -513,9 +513,13 @@ function setRainFrame(h){
 }
 function rainPlay(on){
   const btn=document.getElementById("rain-play");
-  if(on&&rainData){ btn.textContent="⏸"; if(rainTimer)clearInterval(rainTimer); rainTimer=setInterval(()=>setRainFrame((rainFrame+1)%rainData.times.length),240); }
+  if(on&&rainData){ btn.textContent="⏸"; if(rainTimer)clearInterval(rainTimer); rainTimer=setInterval(()=>setRainFrame((rainFrame+1)%rainData.times.length),420); }
   else { btn.textContent="▶"; clearInterval(rainTimer); rainTimer=null; }
 }
+// pause l'anim pendant les gestes carte (fluidité), reprise au relâché
+let rainWasPlaying=false;
+map.on("movestart",()=>{ if(rainTimer){ rainWasPlaying=true; rainPlay(false); } });
+map.on("moveend",()=>{ if(rainWasPlaying){ rainWasPlaying=false; if(document.body.classList.contains("rain-on")) rainPlay(true); } });
 async function loadRain(){
   if(rainData) return true;
   try{ rainData=await (await fetch("rain48.json?t="+Date.now())).json(); }catch(e){ return false; }
