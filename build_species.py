@@ -50,7 +50,6 @@ def essw(w):  # eg -> poids
 SPEC = {
  "trompettes": lambda: essw({1:1.0,2:0.55,3:0.1}) * (0.45+0.55*cool) * (0.55+0.45*valley) * (0.7+0.3*sf) + 0.08*lis,
  "girolles":   lambda: essw({1:0.85,2:0.78,3:0.62})* (0.55+0.45*cool) * (0.6+0.4*valley) * (0.7+0.3*sf),
- "sanguins":   lambda: essw({1:0.12,2:0.15,3:1.0}) * (0.85) * (0.7+0.3*sf),
  "piedmouton": lambda: essw({1:0.8,2:0.76,3:0.82}) * (0.6+0.4*cool) * (0.72+0.28*sf),
 }
 

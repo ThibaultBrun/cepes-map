@@ -15,8 +15,6 @@ SPECIES = {
     "Craterellus cornucopioides":("Trompette de la mort", "Trompettes", "#26242b"),
     "Cantharellus cibarius":     ("Girolle", "Girolles", "#ffb02e"),
     "Craterellus tubaeformis":   ("Chanterelle en tube", "Girolles", "#b98a3a"),
-    "Lactarius deliciosus":      ("Lactaire délicieux (sanguin)", "Sanguins", "#e8622a"),
-    "Lactarius sanguifluus":     ("Sanguin", "Sanguins", "#c0352a"),
     "Hydnum repandum":           ("Pied-de-mouton", "Pied-de-mouton", "#e8d9a8"),
     "Imleria badia":             ("Bolet bai", "Cèpes", "#6e4a28"),
 }

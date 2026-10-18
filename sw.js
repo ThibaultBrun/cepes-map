@@ -1,4 +1,4 @@
-const V = 'cepes-v9';
+const V = 'cepes-v10';
 // Précache : l'app + les sorties famille (dispo hors-ligne dans la forêt, sans réseau)
 const PRECACHE = [
   '/index.html', '/icon.svg', '/manifest.json',
