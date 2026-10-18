@@ -188,6 +188,11 @@
     border-radius:8px;cursor:pointer;border:1px solid rgba(255,255,255,.2);
     background:rgba(244,234,214,.1);transition:.15s;user-select:none}
   .sp-chip:hover{background:rgba(244,234,214,.18)}
+  #target-wrap{display:flex;align-items:center;gap:7px;margin:8px 0 2px;font-size:12px}
+  #target-wrap span{opacity:.8;flex:none}
+  #target-species{flex:1;background:rgba(227,171,77,.12);color:var(--cream);border:1px solid var(--line);
+    border-radius:9px;padding:6px 8px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer}
+  #target-species option{background:#241a10;color:var(--cream)}
   .sect-det{margin:2px 0}
   .sect-det summary{cursor:pointer;list-style:none;outline:none}
   .sect-det summary::-webkit-details-marker{display:none}
@@ -256,6 +261,19 @@ fetch("push.json?t="+Date.now()).then(r=>r.json()).then(p=>{
     <input id="geocoder" type="text" placeholder="🔍 Chercher une commune…" autocomplete="off">
     <div id="geo-results"></div>
   </div>
+  <div id="target-wrap">
+    <span>🎯 Je cherche :</span>
+    <select id="target-species">
+      <option value="Cèpes">🟡 Cèpes</option>
+      <option value="Girolles">🟠 Girolles / chanterelles</option>
+      <option value="Trompettes">⚫ Trompettes de la mort</option>
+      <option value="Sanguins">🔴 Sanguins (lactaires)</option>
+      <option value="Pied-de-mouton">🤍 Pied-de-mouton</option>
+      <option value="Coulemelles">🟤 Coulemelles</option>
+      <option value="Morilles">🟤 Morilles (printemps)</option>
+    </select>
+  </div>
+  <div id="target-hint" style="font-size:9.5px;opacity:.6;margin:-2px 0 5px 2px;line-height:1.4"></div>
   <label class="row"><input type="checkbox" id="t-secteurs"> 🌧️ Secteurs favorables (météo)</label>
   <div style="font-size:9.5px;opacity:.5;margin:-2px 0 4px 2px;line-height:1.4">🟢 fenêtre ouverte · 🟡 ça s'amorce · ⚪ sec — d'après la pluie des ~15 j (clique un secteur)</div>
   <label class="row"><input type="checkbox" id="t-radarlive"> 📡 Radar live (pluie en direct ~2 h)</label>
@@ -679,6 +697,49 @@ map.on("click","gbif-pt",(e)=>{const p=e.features[0].properties;
     <div style="font-size:10.5px;line-height:1.5;opacity:.8;margin-bottom:6px">${hab}</div>
     <div style="font-size:10px;opacity:.5">🗓️ Observation${p.year?" · "+p.year:""} · <span style="color:${col}">●</span> ${grp}</div>`
   ).addTo(map);});
+// ── Carte de potentiel adaptée à l'espèce cherchée ──
+const SPECIES_ESS={
+  "Trompettes":{top:["Hêtre","Chênes décidus","Châtaignier"],good:["Feuillus","Mixte","Chênes sempervirents"]},
+  "Girolles":{top:["Feuillus","Chênes décidus","Hêtre","Pin maritime","Châtaignier"],good:["Mixte","Conifères","Pin laricio, pin noir","Pin autre"]},
+  "Sanguins":{top:["Pin maritime","Pin laricio, pin noir","Pin autre","Pins mélangés"],good:["Conifères","Douglas","Mixte","Sapin, épicéa","Mélèze"]},
+  "Pied-de-mouton":{top:["Feuillus","Chênes décidus","Hêtre","Conifères"],good:["Mixte","Pin maritime","Châtaignier","Pin laricio, pin noir"]},
+  "Coulemelles":{good:["Feuillus","Chênes décidus","Mixte"],edges:true},
+  "Morilles":{top:["Feuillus"],good:["Chênes décidus","Mixte"],edges:true},
+};
+const TARGET_HINT={
+  "Cèpes":"Chênaies/hêtraies, versant doux, ~8-12 j après une bonne pluie.",
+  "Trompettes":"Hêtraies & chênaies FRAÎCHES, versants nord ombragés, litière. Très discrète (noire).",
+  "Girolles":"Sous feuillus & conifères, dans la MOUSSE, sols frais acides. En colonies.",
+  "Sanguins":"PINÈDES uniquement (sous les pins). Lait orange à la coupe. Automne.",
+  "Pied-de-mouton":"Feuillus & conifères, large. Dessous à aiguillons, peu véreux.",
+  "Coulemelles":"PRAIRIES, LISIÈRES, clairières (pas en plein bois). ⚠️ jamais les petites lépiotes.",
+  "Morilles":"PRINTEMPS ! Frênaies, vergers, lisières, sols remués/calcaires. (hors saison ici)",
+};
+function foretExprFor(cfg){
+  const m=["match",["get","essence"]];
+  (cfg.top||[]).forEach(e=>m.push(e,"rgba(227,171,77,0.66)"));
+  (cfg.good||[]).forEach(e=>m.push(e,"rgba(150,110,55,0.5)"));
+  m.push("rgba(110,95,70,0.1)");
+  return m;
+}
+function setTarget(g){
+  document.getElementById("target-hint").textContent="🍄 "+(TARGET_HINT[g]||"");
+  const tf=document.getElementById("t-foret"); if(tf&&!tf.checked){ tf.checked=true; vis(["foret","foret-line"],true); }
+  if(g==="Cèpes"){
+    map.setPaintProperty("foret","fill-color",["match",["get","score"],3,"#5c2e0c",2,"#c07a3a",1,"#f2dcc0","#999"]);
+    map.setPaintProperty("foret","fill-opacity",0.55);
+    map.setLayoutProperty("prime","visibility",document.getElementById("t-prime").checked?"visible":"none");
+    const bestOn=document.getElementById("t-best").checked;
+    ["foret-best","foret-best-line"].forEach(id=>map.setLayoutProperty(id,"visibility",bestOn?"visible":"none"));
+  } else {
+    const cfg=SPECIES_ESS[g];
+    map.setPaintProperty("foret","fill-color",foretExprFor(cfg));
+    map.setPaintProperty("foret","fill-opacity",1);
+    ["prime","foret-best","foret-best-line"].forEach(id=>map.setLayoutProperty(id,"visibility","none"));
+    if(cfg.edges){ map.setLayoutProperty("lisiere","visibility","visible"); const cb=document.getElementById("t-lisiere"); if(cb) cb.checked=true; }
+  }
+}
+document.getElementById("target-species").onchange=(e)=>setTarget(e.target.value);
 // Coins panel: list top score=3 parcels visible on screen
 let _coinsOpen = true;
 document.getElementById("coins-head").onclick = () => {
